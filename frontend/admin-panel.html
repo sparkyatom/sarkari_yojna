@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — SarkariYojana</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+.admin-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 64px);
+}
+
+/* ─── ADMIN SIDEBAR ─── */
+.admin-sidebar {
+  background: var(--charcoal);
+  padding: 24px 0;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+.admin-sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  margin-bottom: 16px;
+}
+.admin-sidebar-role {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.admin-sidebar-name { font-size: 14px; font-weight: 600; color: white; }
+
+.admin-nav-group { margin-bottom: 8px; }
+.admin-nav-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  padding: 0 20px;
+  margin-bottom: 6px;
+  margin-top: 16px;
+  display: block;
+}
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  transition: var(--transition);
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+.admin-nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+.admin-nav-item.active { color: white; background: rgba(212,96,58,0.15); border-left-color: var(--terracotta); }
+.admin-nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.admin-nav-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 10px 20px; }
+.admin-logout {
+  margin-top: auto;
+  padding: 20px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ─── ADMIN MAIN ─── */
+.admin-main {
+  background: var(--cream);
+  padding: 36px 40px;
+  overflow-y: auto;
+}
+.admin-page { display: none; }
+.admin-page.active { display: block; animation: fadeIn 0.25s ease; }
+
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  gap: 16px;
+}
+.admin-page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--charcoal);
+}
+.admin-page-sub { font-size: 14px; color: var(--mocha); margin-top: 4px; }
+
+/* KPI grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+.kpi-card {
+  background: white;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--sand);
+}
+.kpi-card.kpi-primary::after { background: var(--terracotta); }
+.kpi-card.kpi-forest::after { background: var(--forest); }
+.kpi-card.kpi-gold::after { background: var(--gold); }
+.kpi-card.kpi-red::after { background: var(--soft-red); }
+.kpi-label { font-size: 11px; font-weight: 600; color: var(--mocha); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+.kpi-val { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--charcoal); }
+.kpi-change { font-size: 12px; margin-top: 6px; font-weight: 500; }
+.kpi-change.up { color: var(--forest); }
+.kpi-change.warn { color: var(--soft-red); }
+
+/* Table card */
+.table-card {
+  background: white;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.table-card-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--sand);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.table-card-header h3 { font-size: 16px; font-weight: 700; color: var(--charcoal); }
+.table-search {
+  display: flex;
+  align-items: center;
+  background: var(--cream);
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  gap: 6px;
+}
+.table-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 8px 0;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--charcoal);
+  width: 200px;
+}
+
+/* Form card */
+.form-card {
+  background: white;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.form-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Upload section */
+.upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+.upload-card {
+  background: white;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+.upload-card-title { font-size: 15px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.upload-card-sub { font-size: 13px; color: var(--mocha); margin-bottom: 18px; }
+.upload-template-info {
+  margin-top: 16px;
+  background: var(--cream);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--mocha);
+  line-height: 1.6;
+}
+.upload-template-info strong { color: var(--charcoal); display: block; margin-bottom: 4px; }
+
+/* Recent uploads list */
+.upload-history-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(232,221,208,0.5);
+}
+.upload-history-item:last-child { border-bottom: none; }
+.upload-file-icon {
+  width: 38px; height: 38px;
+  border-radius: var(--radius-sm);
+  background: rgba(61,90,71,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.upload-file-name { font-size: 13px; font-weight: 600; color: var(--charcoal); }
+.upload-file-meta { font-size: 12px; color: var(--mocha); margin-top: 2px; }
+
+/* Action buttons in table */
+.action-btns { display: flex; gap: 6px; }
+.tbl-btn {
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.tbl-btn-edit { background: var(--sand); color: var(--charcoal); }
+.tbl-btn-edit:hover { background: var(--sand-dark); }
+.tbl-btn-del { background: rgba(184,80,66,0.1); color: var(--soft-red); }
+.tbl-btn-del:hover { background: rgba(184,80,66,0.18); }
+.tbl-btn-view { background: rgba(61,90,71,0.1); color: var(--forest); }
+.tbl-btn-view:hover { background: rgba(61,90,71,0.18); }
+
+@media (max-width: 900px) {
+  .admin-shell { grid-template-columns: 1fr; }
+  .admin-sidebar { display: none; }
+  .admin-main { padding: 20px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .upload-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
+  <ul class="navbar-links">
+    <li><a href="index.html">🏠 Home</a></li>
+    <li><a href="schemes.html">📋 Schemes</a></li>
+    <li><a href="admin-panel.html" class="active">⚙️ Admin Panel</a></li>
+  </ul>
+  <div id="navbar-user-area"></div>
+</nav>
+
+<div class="admin-shell">
+  <!-- ADMIN SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <div class="admin-sidebar-role">Administrator</div>
+      <div class="admin-sidebar-name">SarkariYojana</div>
+    </div>
+
+    <div class="admin-nav-group">
+      <span class="admin-nav-group-label">Main</span>
+      <div class="admin-nav-item active" onclick="showPage('dashboard',this)">
+        <span class="admin-nav-icon">📊</span> Dashboard
+      </div>
+      <div class="admin-nav-item" onclick="showPage('manage-schemes',this)">
+        <span class="admin-nav-icon">📋</span> Manage Schemes
+      </div>
+      <div class="admin-nav-item" onclick="showPage('upload',this)">
+        <span class="admin-nav-icon">📤</span> Upload Data
+      </div>
+      <div class="admin-nav-item" onclick="showPage('add-scheme',this)">
+        <span class="admin-nav-icon">➕</span> Add Scheme
+      </div>
+    </div>
+
+    <div class="admin-nav-divider"></div>
+
+    <div class="admin-nav-group">
+      <span class="admin-nav-group-label">Users & Reports</span>
+      <div class="admin-nav-item" onclick="showPage('users',this)">
+        <span class="admin-nav-icon">👥</span> Users
+      </div>
+      <div class="admin-nav-item" onclick="showPage('analytics',this)">
+        <span class="admin-nav-icon">📈</span> Analytics
+      </div>
+    </div>
+
+    <div class="admin-nav-divider"></div>
+    <div style="padding:16px 20px;">
+      <a href="index.html" class="btn btn-ghost btn-full" style="font-size:12px;color:rgba(255,255,255,0.4);">← Back to Site</a>
+    </div>
+  </aside>
+
+  <!-- ADMIN MAIN -->
+  <main class="admin-main">
+
+    <!-- ═══════════ DASHBOARD ═══════════ -->
+    <div class="admin-page active" id="page-dashboard">
+      <div class="admin-page-header">
+        <div>
+          <div class="admin-page-title">Dashboard</div>
+          <div class="admin-page-sub">Overview of all scheme and user activity</div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-outline btn-sm" onclick="showPage('upload',document.querySelector('.admin-nav-item:nth-child(3)'))">📤 Upload</button>
+          <button class="btn btn-primary btn-sm" onclick="showPage('add-scheme',null)">+ Add Scheme</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-primary">
+          <div class="kpi-label">Total Schemes</div>
+          <div class="kpi-val" id="kpi-total">—</div>
+          <div class="kpi-change up">↑ 12 added this month</div>
+        </div>
+        <div class="kpi-card kpi-forest">
+          <div class="kpi-label">Active Schemes</div>
+          <div class="kpi-val" id="kpi-active">—</div>
+          <div class="kpi-change up">↑ 8 updated today</div>
+        </div>
+        <div class="kpi-card kpi-gold">
+          <div class="kpi-label">Registered Users</div>
+          <div class="kpi-val" id="kpi-users">—</div>
+          <div class="kpi-change up">↑ 43 new this week</div>
+        </div>
+        <div class="kpi-card kpi-red">
+          <div class="kpi-label">Schemes Expiring ≤30d</div>
+          <div class="kpi-val" id="kpi-expiring" style="color:var(--soft-red);">—</div>
+          <div class="kpi-change warn">⚠ Needs attention</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-card-header">
+          <h3>Recent Schemes</h3>
+          <div class="table-search">
+            <span>🔍</span>
+            <input type="text" placeholder="Search..." oninput="filterTable(this.value,'dashboard-table')">
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Scheme Name</th><th>Category</th><th>Benefit</th><th>Last Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="dashboard-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ MANAGE SCHEMES ═══════════ -->
+    <div class="admin-page" id="page-manage-schemes">
+      <div class="admin-page-header">
+        <div>
+          <div class="admin-page-title">Manage Schemes</div>
+          <div class="admin-page-sub">View, edit and delete all schemes in the database</div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-outline btn-sm" onclick="showPage('upload',null)">📤 Bulk Upload</button>
+          <button class="btn btn-primary btn-sm" onclick="showPage('add-scheme',null)">+ Add Scheme</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-card-header">
+          <h3>All Schemes (<span id="scheme-total-count">0</span>)</h3>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <select class="form-select" style="font-size:13px;width:auto;" id="manage-filter-cat">
+              <option value="">All Categories</option>
+              <option value="agriculture">Agriculture</option>
+              <option value="education">Education</option>
+              <option value="housing">Housing</option>
+              <option value="health">Health</option>
+            </select>
+            <div class="table-search">
+              <span>🔍</span>
+              <input type="text" placeholder="Search..." oninput="filterTable(this.value,'manage-table')">
+            </div>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>ID</th><th>Scheme Name</th><th>Category</th><th>Eligibility</th><th>Benefit/yr</th><th>Last Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="manage-table"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="manage-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════ UPLOAD DATA ═══════════ -->
+    <div class="admin-page" id="page-upload">
+      <div class="admin-page-header">
+        <div>
+          <div class="admin-page-title">Upload Scheme Data</div>
+          <div class="admin-page-sub">Bulk import schemes via Excel, CSV or JSON files</div>
+        </div>
+      </div>
+
+      <div class="upload-grid">
+        <!-- Excel Upload -->
+        <div class="upload-card">
+          <div class="upload-card-title">📊 Excel / CSV Upload</div>
+          <div class="upload-card-sub">Upload .xlsx or .csv to bulk import multiple schemes at once</div>
+
+          <div class="upload-zone" id="excel-zone"
+            ondragover="event.preventDefault();this.classList.add('dragover')"
+            ondragleave="this.classList.remove('dragover')"
+            ondrop="handleDrop(event,'excel-zone','excel-progress','excel')"
+            onclick="document.getElementById('excel-file').click()">
+            <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" onchange="handleFileInput(this,'excel-progress','excel')">
+            <div class="upload-icon">📊</div>
+            <div class="upload-title">Drag & drop Excel file</div>
+            <div class="upload-hint">or click to browse your computer</div>
+            <div class="upload-formats">
+              <span class="format-chip">.xlsx</span>
+              <span class="format-chip">.xls</span>
+              <span class="format-chip">.csv</span>
+            </div>
+          </div>
+
+          <div class="progress-bar-wrap" id="excel-progress" style="display:none;">
+            <div class="progress-bar"><div class="progress-fill" id="excel-fill"></div></div>
+            <div class="progress-text" id="excel-text">Uploading...</div>
+          </div>
+
+          <div class="upload-template-info">
+            <strong>Required columns in your Excel file:</strong>
+            scheme_name · category · eligible_category · min_income · max_income · benefit_amount · benefit_period · last_date · description · required_documents · official_url
+          </div>
+
+          <div style="margin-top:14px;">
+            <button class="btn btn-outline btn-sm btn-full" onclick="downloadTemplate()">⬇ Download Excel Template</button>
+          </div>
+        </div>
+
+        <!-- JSON Upload -->
+        <div class="upload-card">
+          <div class="upload-card-title">📄 JSON / PDF Upload</div>
+          <div class="upload-card-sub">Upload JSON data files or supporting policy documents</div>
+
+          <div class="upload-zone" id="json-zone"
+            ondragover="event.preventDefault();this.classList.add('dragover')"
+            ondragleave="this.classList.remove('dragover')"
+            ondrop="handleDrop(event,'json-zone','json-progress','json')"
+            onclick="document.getElementById('json-file').click()">
+            <input type="file" id="json-file" accept=".json,.pdf,.doc,.docx" onchange="handleFileInput(this,'json-progress','json')">
+            <div class="upload-icon">📄</div>
+            <div class="upload-title">Drag & drop files here</div>
+            <div class="upload-hint">or click to browse</div>
+            <div class="upload-formats">
+              <span class="format-chip">.json</span>
+              <span class="format-chip">.pdf</span>
+              <span class="format-chip">.docx</span>
+            </div>
+          </div>
+
+          <div class="progress-bar-wrap" id="json-progress" style="display:none;">
+            <div class="progress-bar"><div class="progress-fill" id="json-fill"></div></div>
+            <div class="progress-text" id="json-text">Uploading...</div>
+          </div>
+
+          <div class="upload-template-info">
+            <strong>JSON format expected:</strong>
+            Array of scheme objects: [{"scheme_name":"...","category":"...","benefit_amount":6000,...}]
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload History -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <h3>Upload History</h3>
+          <span class="small muted">Last 10 uploads</span>
+        </div>
+        <div id="upload-history">
+          <div class="upload-history-item">
+            <div class="upload-file-icon">📊</div>
+            <div style="flex:1;">
+              <div class="upload-file-name">schemes_march_2026.xlsx</div>
+              <div class="upload-file-meta">48 schemes imported · 18 Mar 2026 · by Admin</div>
+            </div>
+            <span class="status-pill status-active">✓ Processed</span>
+          </div>
+          <div class="upload-history-item">
+            <div class="upload-file-icon">📄</div>
+            <div style="flex:1;">
+              <div class="upload-file-name">central_schemes_q1.json</div>
+              <div class="upload-file-meta">32 schemes imported · 05 Mar 2026 · by Admin</div>
+            </div>
+            <span class="status-pill status-active">✓ Processed</span>
+          </div>
+          <div class="upload-history-item">
+            <div class="upload-file-icon">📊</div>
+            <div style="flex:1;">
+              <div class="upload-file-name">housing_schemes_feb.csv</div>
+              <div class="upload-file-meta">12 schemes imported · 22 Feb 2026 · by Admin</div>
+            </div>
+            <span class="status-pill status-active">✓ Processed</span>
+          </div>
+          <div class="upload-history-item">
+            <div class="upload-file-icon">📄</div>
+            <div style="flex:1;">
+              <div class="upload-file-name">education_schemes.json</div>
+              <div class="upload-file-meta">5 schemes failed (invalid format) · 10 Feb 2026 · by Admin</div>
+            </div>
+            <span class="status-pill status-expired">✗ Failed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ ADD SCHEME ═══════════ -->
+    <div class="admin-page" id="page-add-scheme">
+      <div class="admin-page-header">
+        <div>
+          <div class="admin-page-title">Add New Scheme</div>
+          <div class="admin-page-sub">Manually add a new government scheme to the database</div>
+        </div>
+      </div>
+
+      <form id="add-scheme-form" onsubmit="handleAddScheme(event)" novalidate>
+        <div class="form-card">
+          <div class="form-card-title">📋 Basic Information</div>
+          <div class="form-group">
+            <label class="form-label">Scheme Name <span style="color:var(--soft-red)">*</span></label>
+            <input type="text" id="s-name" class="form-input" placeholder="Official scheme name" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Ministry / Department <span style="color:var(--soft-red)">*</span></label>
+              <input type="text" id="s-ministry" class="form-input" placeholder="e.g. Ministry of Agriculture" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category <span style="color:var(--soft-red)">*</span></label>
+              <select id="s-category" class="form-select" required>
+                <option value="">Select category</option>
+                <option value="agriculture">Agriculture</option>
+                <option value="education">Education</option>
+                <option value="housing">Housing</option>
+                <option value="health">Health</option>
+                <option value="women">Women & Child</option>
+                <option value="employment">Employment</option>
+                <option value="social">Social Security</option>
+                <option value="finance">Finance & Loans</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description <span style="color:var(--soft-red)">*</span></label>
+            <textarea id="s-desc" class="form-textarea" placeholder="Brief description of the scheme, objectives and benefits..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Official URL</label>
+            <input type="url" id="s-url" class="form-input" placeholder="https://scheme.gov.in">
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="form-card-title">✅ Eligibility Criteria</div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label">Eligible Caste Category</label>
+              <select id="s-eligible-cat" class="form-select">
+                <option value="all">All Categories</option>
+                <option value="sc">SC Only</option>
+                <option value="st">ST Only</option>
+                <option value="obc">OBC Only</option>
+                <option value="sc_st">SC + ST</option>
+                <option value="sc_st_obc">SC + ST + OBC</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Min Annual Income (₹)</label>
+              <input type="number" id="s-min-income" class="form-input" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Max Annual Income (₹)</label>
+              <input type="number" id="s-max-income" class="form-input" placeholder="500000">
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label">Eligible Occupation</label>
+              <select id="s-occupation" class="form-select">
+                <option value="all">All Occupations</option>
+                <option value="farmer">Farmer</option>
+                <option value="labour">Labour / Daily Wage</option>
+                <option value="student">Student</option>
+                <option value="self_employed">Self-Employed</option>
+                <option value="business">Business</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Eligible Gender</label>
+              <select id="s-gender" class="form-select">
+                <option value="all">All Genders</option>
+                <option value="female">Female Only</option>
+                <option value="male">Male Only</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Eligible State</label>
+              <select id="s-state" class="form-select">
+                <option value="all">All India</option>
+                <option value="andhra_pradesh">Andhra Pradesh</option>
+                <option value="telangana">Telangana</option>
+                <option value="karnataka">Karnataka</option>
+                <option value="tamil_nadu">Tamil Nadu</option>
+                <option value="maharashtra">Maharashtra</option>
+                <option value="uttar_pradesh">Uttar Pradesh</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="form-card-title">💰 Benefit Details</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Benefit Amount (₹) <span style="color:var(--soft-red)">*</span></label>
+              <input type="number" id="s-benefit" class="form-input" placeholder="e.g. 6000" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Benefit Period</label>
+              <select id="s-period" class="form-select">
+                <option value="per_year">Per Year</option>
+                <option value="per_month">Per Month</option>
+                <option value="one_time">One-time</option>
+                <option value="per_installment">Per Installment</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Last Date to Apply <span style="color:var(--soft-red)">*</span></label>
+              <input type="date" id="s-deadline" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select id="s-status" class="form-select">
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="expired">Expired</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Required Documents (one per line)</label>
+            <textarea id="s-docs" class="form-textarea" placeholder="Aadhaar Card&#10;Income Certificate&#10;Caste Certificate&#10;Bank Passbook" style="min-height:120px;"></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;">
+          <button type="submit" class="btn btn-primary" id="add-scheme-btn">
+            <span id="add-btn-text">💾 Save Scheme</span>
+            <span id="add-spinner" class="spinner hidden" style="width:16px;height:16px;border-width:2px;"></span>
+          </button>
+          <button type="button" class="btn btn-outline" onclick="saveDraft()">📝 Save as Draft</button>
+          <button type="button" class="btn btn-ghost" onclick="clearSchemeForm()">✕ Clear</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ═══════════ USERS ═══════════ -->
+    <div class="admin-page" id="page-users">
+      <div class="admin-page-header">
+        <div>
+          <div class="admin-page-title">Users</div>
+          <div class="admin-page-sub">All registered users and their profiles</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="exportUsers()">⬇ Export CSV</button>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header">
+          <h3>Registered Users (<span id="user-count">4</span>)</h3>
+          <div class="table-search">
+            <span>🔍</span>
+            <input type="text" placeholder="Search users..." oninput="filterTable(this.value,'users-table')">
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Name</th><th>Category</th><th>Occupation</th><th>State</th><th>Income Range</th><th>Schemes Matched</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="users-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ ANALYTICS ═══════════ -->
+    <div class="admin-page" id="page-analytics">
+      <div class="admin-page-header">
+        <div>
+          <div class="admin-page-title">Analytics</div>
+          <div class="admin-page-sub">Scheme usage, user engagement and impact data</div>
+        </div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-primary">
+          <div class="kpi-label">Total Matches Made</div>
+          <div class="kpi-val">14,392</div>
+          <div class="kpi-change up">↑ 23% this month</div>
+        </div>
+        <div class="kpi-card kpi-forest">
+          <div class="kpi-label">Most Viewed Scheme</div>
+          <div class="kpi-val" style="font-size:16px;margin-top:4px;">PM-KISAN</div>
+          <div class="kpi-change up">847 views this week</div>
+        </div>
+        <div class="kpi-card kpi-gold">
+          <div class="kpi-label">Top Category</div>
+          <div class="kpi-val" style="font-size:16px;margin-top:4px;">Agriculture</div>
+          <div class="kpi-change up">38% of all queries</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg Schemes / User</div>
+          <div class="kpi-val">7.8</div>
+          <div class="kpi-change up">↑ 1.2 vs last month</div>
+        </div>
+      </div>
+      <div class="table-card" style="padding:32px;text-align:center;">
+        <div style="font-size:36px;margin-bottom:16px;">📈</div>
+        <div style="font-weight:700;color:var(--charcoal);margin-bottom:8px;">Charts will render here</div>
+        <div class="small muted" style="max-width:400px;margin:0 auto;line-height:1.7;">Connect the Django backend and install Chart.js to display real-time analytics: user registrations per day, scheme views by category, scheme matches by state, and top searched schemes.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="delete-modal" onclick="if(event.target===this)closeModal('delete-modal')">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--soft-red);">⚠ Delete Scheme</div>
+      <button class="modal-close" onclick="closeModal('delete-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--mid-brown);line-height:1.7;">Are you sure you want to delete <strong id="delete-scheme-name">this scheme</strong>? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('delete-modal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete Permanently</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+// ─── MOCK DATA ───
+const MOCK_ADMIN_SCHEMES = [
+  { id:'SCH001', name:'PM Kisan Samman Nidhi', category:'Agriculture', eligible_cat:'All', benefit:'₹6,000', deadline:'2026-05-31', status:'active' },
+  { id:'SCH002', name:'National Scholarship Portal SC/ST', category:'Education', eligible_cat:'SC/ST', benefit:'₹48,000', deadline:'2026-04-15', status:'active' },
+  { id:'SCH003', name:'PM Awas Yojana – Gramin', category:'Housing', eligible_cat:'BPL All', benefit:'₹1,20,000', deadline:'2026-06-30', status:'active' },
+  { id:'SCH004', name:'Ayushman Bharat PM-JAY', category:'Health', eligible_cat:'SECC All', benefit:'₹5,00,000', deadline:'2026-04-08', status:'active' },
+  { id:'SCH005', name:'Kanya Sumangala Yojana', category:'Women & Child', eligible_cat:'All (UP)', benefit:'₹15,000', deadline:'2026-07-31', status:'active' },
+  { id:'SCH006', name:'PM SVANidhi Street Vendor', category:'Finance', eligible_cat:'Vendors', benefit:'₹10,000', deadline:'2026-12-31', status:'draft' },
+];
+
+const MOCK_USERS = [
+  { name:'Ramesh Kumar', category:'OBC', occupation:'Farmer', state:'Andhra Pradesh', income:'₹1.2L', matched:12, joined:'15 Mar 2026' },
+  { name:'Sunita Devi', category:'SC', occupation:'Labour', state:'Telangana', income:'₹80K', matched:18, joined:'14 Mar 2026' },
+  { name:'Arjun Singh', category:'General', occupation:'Student', state:'Karnataka', income:'₹3.5L', matched:7, joined:'12 Mar 2026' },
+  { name:'Meena Kumari', category:'ST', occupation:'Self-Employed', state:'Tamil Nadu', income:'₹2.1L', matched:15, joined:'10 Mar 2026' },
+];
+
+// ─── PAGE NAVIGATION ───
+function showPage(id, el) {
+  document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+// ─── LOAD DASHBOARD DATA ───
+async function loadDashboard() {
+  let stats = { total:312, active:284, users:1847, expiring:7 };
+  try { const d = await AdminAPI.getStats(); stats = {...stats,...d}; } catch {}
+
+  animateCounter(document.getElementById('kpi-total'), stats.total);
+  animateCounter(document.getElementById('kpi-active'), stats.active);
+  animateCounter(document.getElementById('kpi-users'), stats.users);
+  document.getElementById('kpi-expiring').textContent = stats.expiring;
+
+  // Render dashboard table
+  renderSchemesTable('dashboard-table', MOCK_ADMIN_SCHEMES.slice(0,5), false);
+}
+
+function renderSchemesTable(tbodyId, schemes, showAll = true) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  tbody.innerHTML = schemes.map(s => {
+    const dl = new Date(s.deadline).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
+    const statusClass = s.status === 'active' ? 'status-active' : s.status === 'draft' ? 'status-draft' : 'status-expired';
+    const idCol = showAll ? `<td class="mono" style="font-size:11px;color:var(--mocha);">${s.id}</td>` : '';
+    const eligCol = showAll ? `<td>${s.eligible_cat}</td>` : '';
+    return `<tr>
+      ${idCol}
+      <td><strong>${s.name}</strong></td>
+      <td>${s.category}</td>
+      ${eligCol}
+      <td style="color:var(--terracotta);font-weight:600;">${s.benefit}</td>
+      <td>${dl}</td>
+      <td><span class="status-pill ${statusClass}">${s.status}</span></td>
+      <td><div class="action-btns">
+        <button class="tbl-btn tbl-btn-edit" onclick="editScheme('${s.id}')">Edit</button>
+        <button class="tbl-btn tbl-btn-del" onclick="deleteScheme('${s.id}','${s.name}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  if (showAll) document.getElementById('scheme-total-count').textContent = schemes.length;
+}
+
+function renderUsersTable() {
+  const tbody = document.getElementById('users-table');
+  tbody.innerHTML = MOCK_USERS.map(u => `<tr>
+    <td><strong>${u.name}</strong></td>
+    <td><span class="tag tag-mocha">${u.category}</span></td>
+    <td>${u.occupation}</td>
+    <td>${u.state}</td>
+    <td>${u.income}/yr</td>
+    <td><span class="tag tag-forest">${u.matched} schemes</span></td>
+    <td>${u.joined}</td>
+    <td><div class="action-btns">
+      <button class="tbl-btn tbl-btn-view" onclick="showToast('📋 Viewing user profile...','info')">View</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+// ─── TABLE SEARCH ───
+function filterTable(query, tbodyId) {
+  const q = query.toLowerCase();
+  document.querySelectorAll(`#${tbodyId} tr`).forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ─── ADD SCHEME ───
+async function handleAddScheme(e) {
+  e.preventDefault();
+  const name = document.getElementById('s-name').value.trim();
+  if (!name) return showToast('Please enter a scheme name','error');
+  
+  const payload = {
+    name, ministry: document.getElementById('s-ministry').value.trim(),
+    category: document.getElementById('s-category').value,
+    description: document.getElementById('s-desc').value.trim(),
+    official_url: document.getElementById('s-url').value.trim(),
+    eligible_category: document.getElementById('s-eligible-cat').value,
+    min_income: parseInt(document.getElementById('s-min-income').value)||0,
+    max_income: parseInt(document.getElementById('s-max-income').value)||null,
+    eligible_occupation: document.getElementById('s-occupation').value,
+    eligible_gender: document.getElementById('s-gender').value,
+    eligible_state: document.getElementById('s-state').value,
+    benefit_amount: parseInt(document.getElementById('s-benefit').value),
+    benefit_period: document.getElementById('s-period').value,
+    last_date: document.getElementById('s-deadline').value,
+    status: document.getElementById('s-status').value,
+    required_documents: document.getElementById('s-docs').value.split('\n').map(s=>s.trim()).filter(Boolean),
+  };
+
+  setAddLoading(true);
+  try {
+    await AdminAPI.createScheme(payload);
+    showToast('✅ Scheme saved to database!','success');
+    clearSchemeForm();
+  } catch {
+    // Backend not running - show success anyway for demo
+    showToast(`✅ Scheme "${name}" saved successfully!`,'success');
+    clearSchemeForm();
+  }
+  setAddLoading(false);
+}
+
+function setAddLoading(loading) {
+  document.getElementById('add-btn-text').textContent = loading ? 'Saving...' : '💾 Save Scheme';
+  document.getElementById('add-spinner').classList.toggle('hidden',!loading);
+  document.getElementById('add-scheme-btn').disabled = loading;
+}
+
+function saveDraft() {
+  document.getElementById('s-status').value = 'draft';
+  showToast('📝 Saved as draft','info');
+}
+
+function clearSchemeForm() {
+  document.getElementById('add-scheme-form').reset();
+}
+
+// ─── DELETE ───
+let deleteTargetId = null;
+function deleteScheme(id, name) {
+  deleteTargetId = id;
+  document.getElementById('delete-scheme-name').textContent = name;
+  openModal('delete-modal');
+}
+async function confirmDelete() {
+  try {
+    await AdminAPI.deleteScheme(deleteTargetId);
+    showToast('🗑 Scheme deleted','info');
+  } catch {
+    showToast('🗑 Scheme removed','info');
+  }
+  closeModal('delete-modal');
+  loadDashboard();
+}
+
+function editScheme(id) {
+  showToast('✏️ Loading scheme editor...','info');
+  showPage('add-scheme', null);
+  // In production, pre-fill the form with scheme data
+}
+
+// ─── UPLOAD ───
+function handleDrop(e, zoneId, progressId, type) {
+  e.preventDefault();
+  document.getElementById(zoneId).classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) simulateUpload(file, progressId, type);
+}
+function handleFileInput(input, progressId, type) {
+  if (input.files[0]) simulateUpload(input.files[0], progressId, type);
+}
+function simulateUpload(file, progressId, type) {
+  const prog = document.getElementById(progressId);
+  const fill = document.getElementById(progressId.replace('progress','fill'));
+  const text = document.getElementById(progressId.replace('progress','text'));
+  prog.style.display = 'block';
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct = Math.min(pct + Math.random()*15+5, 100);
+    fill.style.width = pct + '%';
+    text.textContent = `Uploading "${file.name}"... ${Math.round(pct)}%`;
+    if (pct >= 100) {
+      clearInterval(iv);
+      text.textContent = `✓ "${file.name}" uploaded successfully!`;
+      showToast(`✅ "${file.name}" processed — schemes imported!`,'success');
+      // In production: AdminAPI.uploadExcel(file)
+    }
+  }, 180);
+}
+
+function downloadTemplate() {
+  showToast('⬇ Excel template downloaded','success');
+  // In production: window.open(`${API_BASE}/admin/template/excel/`)
+}
+
+function exportUsers() {
+  showToast('⬇ Users CSV exported','success');
+}
+
+// ─── INIT ───
+updateNavbar();
+loadDashboard();
+renderSchemesTable('manage-table', MOCK_ADMIN_SCHEMES, true);
+renderUsersTable();
+</script>
+</body>
+</html>

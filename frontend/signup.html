@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — SarkariYojana</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+.auth-shell {
+  display: grid;
+  grid-template-columns: 1fr 520px;
+  min-height: calc(100vh - 64px);
+}
+.auth-left {
+  background: var(--deep-forest);
+  padding: 80px 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.auth-left::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(196,120,74,0.2) 0%, transparent 65%);
+  border-radius: 50%;
+}
+.auth-headline {
+  position: relative; z-index: 2;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 3.5vw, 44px);
+  font-weight: 900;
+  color: var(--warm-white);
+  line-height: 1.15;
+  margin-bottom: 18px;
+}
+.auth-headline em { color: var(--terracotta); font-style: normal; }
+.auth-sub { position: relative; z-index: 2; font-size: 15px; color: var(--light-mocha); line-height: 1.75; max-width: 380px; margin-bottom: 40px; }
+.auth-features { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 16px; }
+.auth-feature { display: flex; align-items: center; gap: 12px; }
+.feature-icon { width: 38px; height: 38px; background: rgba(212,96,58,0.18); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.feature-text { font-size: 13px; color: var(--light-mocha); line-height: 1.5; }
+
+.auth-right {
+  background: var(--warm-white);
+  padding: 48px 40px;
+  overflow-y: auto;
+  max-height: calc(100vh - 64px);
+}
+.auth-form-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.auth-form-sub { font-size: 13px; color: var(--mocha); margin-bottom: 28px; }
+
+/* Step indicator */
+.steps-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 32px;
+}
+.step-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--sand);
+  border: 2px solid var(--sand-dark);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mocha);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.step-dot.active { background: var(--terracotta); border-color: var(--terracotta); color: white; }
+.step-dot.done { background: var(--forest); border-color: var(--forest); color: white; }
+.step-line { flex: 1; height: 2px; background: var(--sand); }
+.step-line.done { background: var(--forest); }
+
+/* Form steps */
+.form-step { display: none; }
+.form-step.active { display: block; animation: fadeIn 0.3s ease both; }
+
+.section-block {
+  background: white;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.section-block-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--mocha);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-pic-zone {
+  border: 2px dashed var(--sand-dark);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  background: white;
+  position: relative;
+}
+.profile-pic-zone:hover { border-color: var(--terracotta); background: rgba(212,96,58,0.03); }
+.profile-pic-zone input { display: none; }
+.profile-pic-preview {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 12px;
+  display: none;
+}
+.profile-pic-icon { font-size: 32px; margin-bottom: 10px; }
+.profile-pic-text { font-size: 13px; color: var(--mocha); }
+.profile-pic-hint { font-size: 11px; color: var(--light-mocha); margin-top: 4px; }
+
+.nav-btns { display: flex; gap: 12px; margin-top: 24px; }
+
+.auth-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--mocha); }
+.auth-switch a { color: var(--terracotta); font-weight: 600; }
+
+@media (max-width: 900px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-left { display: none; }
+  .auth-right { padding: 32px 20px; max-height: none; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
+  <ul class="navbar-links">
+    <li><a href="index.html">🏠 Home</a></li>
+    <li><a href="schemes.html">📋 Schemes</a></li>
+    <li><a href="login.html">🔐 Login</a></li>
+    <li><a href="signup.html" class="active">📝 Sign Up</a></li>
+  </ul>
+  <div id="navbar-user-area"></div>
+</nav>
+
+<div class="auth-shell">
+  <!-- LEFT -->
+  <div class="auth-left">
+    <h1 class="auth-headline">Join <em>SarkariYojana</em><br>Today — Free</h1>
+    <p class="auth-sub">Create your profile once. Instantly discover every government scheme you're eligible for, with deadlines, benefits, and required documents.</p>
+    <div class="auth-features">
+      <div class="auth-feature"><div class="feature-icon">🆓</div><div class="feature-text">Completely free — no charges ever</div></div>
+      <div class="auth-feature"><div class="feature-icon">🔒</div><div class="feature-text">Your data is secure and never sold</div></div>
+      <div class="auth-feature"><div class="feature-icon">⚡</div><div class="feature-text">Instant eligibility matching — results in seconds</div></div>
+      <div class="auth-feature"><div class="feature-icon">📱</div><div class="feature-text">Works on mobile, tablet and desktop</div></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: MULTI-STEP FORM -->
+  <div class="auth-right">
+    <div class="auth-form-title">Create Account</div>
+    <div class="auth-form-sub">Step <span id="step-display">1</span> of 3 — All details help us match your schemes</div>
+
+    <!-- Step indicator -->
+    <div class="steps-indicator">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot" id="dot-2">2</div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot" id="dot-3">3</div>
+    </div>
+
+    <div id="signup-error" class="alert alert-error hidden">
+      <span>⚠️</span><span id="signup-error-msg"></span>
+    </div>
+
+    <form id="signup-form" onsubmit="handleSubmitFinal(event)" novalidate>
+
+      <!-- STEP 1: Personal Info -->
+      <div class="form-step active" id="step-1">
+        <div class="section-block">
+          <div class="section-block-title">👤 Personal Information</div>
+
+          <div class="form-group">
+            <label class="form-label">Full Name <span style="color:var(--soft-red)">*</span></label>
+            <input type="text" id="full_name" class="form-input" placeholder="As per Aadhaar card" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Date of Birth <span style="color:var(--soft-red)">*</span></label>
+              <input type="date" id="dob" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender <span style="color:var(--soft-red)">*</span></label>
+              <select id="gender" class="form-select" required>
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Caste Category <span style="color:var(--soft-red)">*</span></label>
+              <select id="category" class="form-select" required>
+                <option value="">Select category</option>
+                <option value="general">General</option>
+                <option value="sc">SC (Scheduled Caste)</option>
+                <option value="st">ST (Scheduled Tribe)</option>
+                <option value="obc">OBC (Other Backward Class)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Marital Status</label>
+              <select id="marital_status" class="form-select">
+                <option value="">Select</option>
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+                <option value="divorced">Divorced</option>
+                <option value="widowed">Widowed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Aadhaar Number</label>
+            <input type="text" id="aadhaar" class="form-input" placeholder="XXXX XXXX XXXX" maxlength="14" oninput="formatAadhaar(this)">
+            <div class="form-hint">Optional — helps in accurate scheme matching</div>
+          </div>
+        </div>
+
+        <div class="nav-btns">
+          <button type="button" class="btn btn-primary" onclick="goToStep(2)" style="flex:1;">Continue →</button>
+        </div>
+        <div class="auth-switch">Already registered? <a href="login.html">Sign In</a></div>
+      </div>
+
+      <!-- STEP 2: Economic & Family Info -->
+      <div class="form-step" id="step-2">
+        <div class="section-block">
+          <div class="section-block-title">💰 Economic Information</div>
+
+          <div class="form-group">
+            <label class="form-label">Annual Family Income <span style="color:var(--soft-red)">*</span></label>
+            <select id="income_range" class="form-select" required>
+              <option value="">Select income range</option>
+              <option value="0-100000">Below ₹1 Lakh</option>
+              <option value="100000-250000">₹1 Lakh – ₹2.5 Lakh</option>
+              <option value="250000-500000">₹2.5 Lakh – ₹5 Lakh</option>
+              <option value="500000-1000000">₹5 Lakh – ₹10 Lakh</option>
+              <option value="1000000+">Above ₹10 Lakh</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Occupation <span style="color:var(--soft-red)">*</span></label>
+              <select id="occupation" class="form-select" required>
+                <option value="">Select occupation</option>
+                <option value="farmer">Farmer</option>
+                <option value="labour">Labour / Daily Wage Worker</option>
+                <option value="self_employed">Self-Employed</option>
+                <option value="business">Business Owner</option>
+                <option value="teacher">Teacher</option>
+                <option value="student">Student</option>
+                <option value="govt_employee">Government Employee</option>
+                <option value="private_employee">Private Employee</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">State / UT <span style="color:var(--soft-red)">*</span></label>
+              <select id="state" class="form-select" required>
+                <option value="">Select state</option>
+                <option value="andhra_pradesh">Andhra Pradesh</option>
+                <option value="telangana">Telangana</option>
+                <option value="tamil_nadu">Tamil Nadu</option>
+                <option value="karnataka">Karnataka</option>
+                <option value="kerala">Kerala</option>
+                <option value="maharashtra">Maharashtra</option>
+                <option value="gujarat">Gujarat</option>
+                <option value="rajasthan">Rajasthan</option>
+                <option value="madhya_pradesh">Madhya Pradesh</option>
+                <option value="uttar_pradesh">Uttar Pradesh</option>
+                <option value="bihar">Bihar</option>
+                <option value="west_bengal">West Bengal</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Do you own land / property?</label>
+            <select id="has_land" class="form-select">
+              <option value="no">No</option>
+              <option value="yes_less_2ha">Yes — less than 2 hectares</option>
+              <option value="yes_more_2ha">Yes — more than 2 hectares</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-block-title">👨‍👩‍👧 Parental / Family Info</div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Father's Name</label>
+              <input type="text" id="father_name" class="form-input" placeholder="Father's full name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mother's Name</label>
+              <input type="text" id="mother_name" class="form-input" placeholder="Mother's full name">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Number of family members</label>
+            <input type="number" id="family_size" class="form-input" placeholder="e.g. 4" min="1" max="20">
+          </div>
+        </div>
+
+        <div class="nav-btns">
+          <button type="button" class="btn btn-outline" onclick="goToStep(1)">← Back</button>
+          <button type="button" class="btn btn-primary" onclick="goToStep(3)" style="flex:1;">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Account Setup -->
+      <div class="form-step" id="step-3">
+        <div class="section-block">
+          <div class="section-block-title">🔐 Account Credentials</div>
+
+          <div class="form-group">
+            <label class="form-label">Username <span style="color:var(--soft-red)">*</span></label>
+            <input type="text" id="username" class="form-input" placeholder="Choose a username" required autocomplete="username">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="email" class="form-input" placeholder="your@email.com">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mobile Number</label>
+            <input type="tel" id="mobile" class="form-input" placeholder="+91 XXXXX XXXXX" maxlength="13">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Password <span style="color:var(--soft-red)">*</span></label>
+              <input type="password" id="password" class="form-input" placeholder="Min. 8 characters" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm Password <span style="color:var(--soft-red)">*</span></label>
+              <input type="password" id="confirm_password" class="form-input" placeholder="Re-enter password" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-block-title">📷 Profile Picture (Optional)</div>
+          <div class="profile-pic-zone" onclick="document.getElementById('profile_pic').click()" id="pic-zone">
+            <input type="file" id="profile_pic" accept="image/*" onchange="previewPic(this)">
+            <img id="pic-preview" class="profile-pic-preview" alt="Preview">
+            <div class="profile-pic-icon" id="pic-icon">📷</div>
+            <div class="profile-pic-text">Click to upload your photo</div>
+            <div class="profile-pic-hint">JPG, PNG up to 5MB</div>
+          </div>
+        </div>
+
+        <div class="nav-btns">
+          <button type="button" class="btn btn-outline" onclick="goToStep(2)">← Back</button>
+          <button type="submit" class="btn btn-primary" style="flex:1;" id="signup-btn">
+            <span id="signup-btn-text">Create Account & Find My Schemes →</span>
+            <span id="signup-spinner" class="spinner hidden" style="width:16px;height:16px;border-width:2px;"></span>
+          </button>
+        </div>
+
+        <div style="text-align:center;margin-top:12px;">
+          <a href="schemes.html" class="small muted">Skip for now — browse schemes →</a>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+updateNavbar();
+if (Auth.isLoggedIn()) window.location.href = 'schemes.html';
+
+let currentStep = 1;
+
+function goToStep(n) {
+  // Validate before advancing
+  if (n > currentStep) {
+    if (!validateStep(currentStep)) return;
+  }
+
+  document.getElementById(`step-${currentStep}`).classList.remove('active');
+  document.getElementById(`dot-${currentStep}`).classList.remove('active');
+  document.getElementById(`dot-${currentStep}`).classList.add('done');
+  if (currentStep < 3) document.getElementById(`line-${currentStep}`).classList.add('done');
+
+  currentStep = n;
+  document.getElementById(`step-${n}`).classList.add('active');
+  document.getElementById(`dot-${n}`).classList.add('active');
+  document.getElementById(`dot-${n}`).classList.remove('done');
+  document.getElementById('step-display').textContent = n;
+
+  // If going back
+  if (n < 3) {
+    document.getElementById(`dot-${n}`).classList.remove('done');
+    document.getElementById(`dot-${n}`).classList.add('active');
+    for (let i = n; i <= 3; i++) {
+      const dot = document.getElementById(`dot-${i}`);
+      dot.classList.remove('done');
+      if (i === n) dot.classList.add('active');
+      else dot.classList.remove('active');
+      if (i < 3) document.getElementById(`line-${i}`).classList.remove('done');
+    }
+  }
+}
+
+function validateStep(step) {
+  hideError();
+  if (step === 1) {
+    if (!document.getElementById('full_name').value.trim()) return showError('Please enter your full name.');
+    if (!document.getElementById('dob').value) return showError('Please enter your date of birth.');
+    if (!document.getElementById('gender').value) return showError('Please select your gender.');
+    if (!document.getElementById('category').value) return showError('Please select your caste category.');
+  }
+  if (step === 2) {
+    if (!document.getElementById('income_range').value) return showError('Please select your income range.');
+    if (!document.getElementById('occupation').value) return showError('Please select your occupation.');
+    if (!document.getElementById('state').value) return showError('Please select your state.');
+  }
+  return true;
+}
+
+async function handleSubmitFinal(e) {
+  e.preventDefault();
+  if (!validateStep(3)) return;
+
+  const pw = document.getElementById('password').value;
+  const cpw = document.getElementById('confirm_password').value;
+  if (pw !== cpw) return showError('Passwords do not match.');
+  if (pw.length < 8) return showError('Password must be at least 8 characters.');
+
+  setSubmitLoading(true);
+
+  const payload = {
+    full_name: document.getElementById('full_name').value.trim(),
+    date_of_birth: document.getElementById('dob').value,
+    gender: document.getElementById('gender').value,
+    category: document.getElementById('category').value,
+    marital_status: document.getElementById('marital_status').value,
+    aadhaar: document.getElementById('aadhaar').value.replace(/\s/g,''),
+    income_range: document.getElementById('income_range').value,
+    occupation: document.getElementById('occupation').value,
+    state: document.getElementById('state').value,
+    has_land: document.getElementById('has_land').value,
+    father_name: document.getElementById('father_name').value.trim(),
+    mother_name: document.getElementById('mother_name').value.trim(),
+    family_size: parseInt(document.getElementById('family_size').value) || 1,
+    username: document.getElementById('username').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    mobile: document.getElementById('mobile').value.trim(),
+    password: pw,
+  };
+
+  try {
+    await AuthAPI.register(payload);
+    // Auto-login
+    await AuthAPI.login(payload.username, payload.password);
+    showToast('🎉 Account created! Finding your schemes...', 'success');
+    setTimeout(() => window.location.href = 'schemes.html', 1200);
+  } catch (err) {
+    const msg = Object.values(err)[0]?.[0] || 'Registration failed. Please try again.';
+    showError(msg);
+    setSubmitLoading(false);
+  }
+}
+
+function showError(msg) {
+  document.getElementById('signup-error-msg').textContent = msg;
+  document.getElementById('signup-error').classList.remove('hidden');
+  return false;
+}
+function hideError() { document.getElementById('signup-error').classList.add('hidden'); }
+
+function setSubmitLoading(loading) {
+  document.getElementById('signup-btn-text').textContent = loading ? 'Creating account...' : 'Create Account & Find My Schemes →';
+  document.getElementById('signup-spinner').classList.toggle('hidden', !loading);
+  document.getElementById('signup-btn').disabled = loading;
+}
+
+function formatAadhaar(input) {
+  let v = input.value.replace(/\D/g, '').substring(0, 12);
+  input.value = v.replace(/(.{4})/g, '$1 ').trim();
+}
+
+function previewPic(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('pic-preview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+      document.getElementById('pic-icon').style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+</body>
+</html>

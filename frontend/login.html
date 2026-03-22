@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — SarkariYojana</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+.auth-shell {
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  min-height: calc(100vh - 64px);
+}
+.auth-left {
+  background: var(--deep-forest);
+  padding: 80px 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.auth-left::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(196,120,74,0.2) 0%, transparent 65%);
+  border-radius: 50%;
+}
+.auth-left::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; left: -40px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(61,90,71,0.4) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.auth-headline {
+  position: relative; z-index: 2;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 900;
+  color: var(--warm-white);
+  line-height: 1.15;
+  margin-bottom: 18px;
+}
+.auth-headline em { color: var(--terracotta); font-style: normal; }
+.auth-sub {
+  position: relative; z-index: 2;
+  font-size: 15px;
+  color: var(--light-mocha);
+  line-height: 1.75;
+  max-width: 380px;
+  margin-bottom: 48px;
+}
+.auth-features {
+  position: relative; z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.auth-feature {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.feature-icon {
+  width: 40px; height: 40px;
+  background: rgba(212,96,58,0.18);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.feature-text { font-size: 14px; color: var(--light-mocha); }
+
+.auth-right {
+  background: var(--warm-white);
+  padding: 60px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+}
+.auth-form-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 6px;
+}
+.auth-form-sub {
+  font-size: 14px;
+  color: var(--mocha);
+  margin-bottom: 36px;
+}
+.auth-switch {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--mocha);
+}
+.auth-switch a { color: var(--terracotta); font-weight: 600; cursor: pointer; }
+.auth-switch a:hover { text-decoration: underline; }
+.skip-link {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.skip-link a { color: var(--mocha); }
+.skip-link a:hover { color: var(--charcoal); }
+
+@media (max-width: 900px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-left { display: none; }
+  .auth-right { padding: 40px 24px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
+  <ul class="navbar-links">
+    <li><a href="index.html">🏠 Home</a></li>
+    <li><a href="schemes.html">📋 Schemes</a></li>
+    <li><a href="login.html" class="active">🔐 Login</a></li>
+    <li><a href="signup.html">📝 Sign Up</a></li>
+  </ul>
+  <div id="navbar-user-area"></div>
+</nav>
+
+<div class="auth-shell">
+  <!-- LEFT PANEL -->
+  <div class="auth-left">
+    <h1 class="auth-headline">Welcome Back to<br><em>SarkariYojana</em></h1>
+    <p class="auth-sub">Your personalised gateway to 500+ government welfare schemes across India. Login to see schemes matched to your profile.</p>
+    <div class="auth-features">
+      <div class="auth-feature">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-text">Schemes auto-matched to your category, income & occupation</div>
+      </div>
+      <div class="auth-feature">
+        <div class="feature-icon">🔔</div>
+        <div class="feature-text">Deadline alerts so you never miss a scheme</div>
+      </div>
+      <div class="auth-feature">
+        <div class="feature-icon">📄</div>
+        <div class="feature-text">Document checklist for every scheme</div>
+      </div>
+      <div class="auth-feature">
+        <div class="feature-icon">🆓</div>
+        <div class="feature-text">100% free — no hidden charges</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right">
+    <div class="auth-form-title">Sign In</div>
+    <div class="auth-form-sub">Login with your username and password</div>
+
+    <div id="login-error" class="alert alert-error hidden">
+      <span>⚠️</span><span id="login-error-msg">Invalid credentials</span>
+    </div>
+
+    <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input type="text" id="username" class="form-input" placeholder="Enter your username" required autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div style="position:relative;">
+          <input type="password" id="password" class="form-input" placeholder="••••••••" required autocomplete="current-password" style="padding-right:48px;">
+          <button type="button" onclick="togglePassword()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;color:var(--mocha);" id="pw-toggle">👁</button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
+        <a href="#" class="small muted" style="font-size:13px;">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+        <span id="login-btn-text">Sign In →</span>
+        <span id="login-spinner" class="spinner hidden" style="width:16px;height:16px;border-width:2px;"></span>
+      </button>
+    </form>
+
+    <div class="divider">or</div>
+
+    <div class="auth-switch">
+      Don't have an account? <a href="signup.html">Create one free</a>
+    </div>
+    <div class="skip-link">
+      <a href="schemes.html">Skip for now — browse schemes →</a>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+updateNavbar();
+
+// Redirect if already logged in
+if (Auth.isLoggedIn()) window.location.href = 'schemes.html';
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!username || !password) {
+    showError('Please enter your username and password.');
+    return;
+  }
+
+  setLoading(true);
+  try {
+    await AuthAPI.login(username, password);
+    showToast('👋 Welcome back! Finding your schemes...', 'success');
+    setTimeout(() => window.location.href = 'schemes.html', 1000);
+  } catch (err) {
+    const msg = err.detail || err.non_field_errors?.[0] || 'Invalid username or password.';
+    showError(msg);
+    setLoading(false);
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('login-error');
+  document.getElementById('login-error-msg').textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function setLoading(loading) {
+  document.getElementById('login-btn-text').textContent = loading ? 'Signing in...' : 'Sign In →';
+  document.getElementById('login-spinner').classList.toggle('hidden', !loading);
+  document.getElementById('login-btn').disabled = loading;
+}
+
+function togglePassword() {
+  const inp = document.getElementById('password');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+</script>
+</body>
+</html>

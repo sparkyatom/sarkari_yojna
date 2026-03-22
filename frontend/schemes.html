@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browse Schemes — SarkariYojana</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+.page-shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 64px);
+  align-items: start;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  background: var(--warm-white);
+  border-right: 1px solid var(--sand);
+  padding: 28px 0;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+.sidebar-section { margin-bottom: 24px; }
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--light-mocha);
+  padding: 0 24px;
+  margin-bottom: 10px;
+  display: block;
+}
+.sidebar-filter { padding: 0 24px; }
+.sidebar .form-select, .sidebar .form-input { font-size: 13px; }
+.sidebar-cat-list { list-style: none; }
+.sidebar-cat-list li a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 24px;
+  font-size: 13px;
+  color: var(--mid-brown);
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+.sidebar-cat-list li a:hover { background: var(--sand); color: var(--charcoal); }
+.sidebar-cat-list li a.active {
+  background: rgba(212,96,58,0.08);
+  color: var(--terracotta);
+  font-weight: 600;
+  border-right: 3px solid var(--terracotta);
+}
+.cat-badge {
+  background: var(--sand);
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: var(--mocha);
+}
+.sidebar-divider { height: 1px; background: var(--sand); margin: 8px 24px 20px; }
+
+/* ─── MAIN ─── */
+.main { padding: 32px 36px; }
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+.main-header-left h2 { margin-bottom: 4px; }
+.result-count { font-size: 13px; color: var(--mocha); }
+
+.search-sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.search-box {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1.5px solid var(--sand);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  gap: 8px;
+  width: 240px;
+  transition: var(--transition);
+}
+.search-box:focus-within { border-color: var(--terracotta); box-shadow: 0 0 0 3px rgba(212,96,58,0.1); }
+.search-box input {
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  background: transparent;
+  width: 100%;
+  color: var(--charcoal);
+}
+.search-icon { color: var(--mocha); font-size: 14px; }
+
+/* ─── SCHEME CARDS ─── */
+.schemes-list { display: flex; flex-direction: column; gap: 16px; }
+.scheme-card {
+  background: white;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.scheme-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--forest);
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+.scheme-card.urgent::before { background: var(--terracotta); }
+.scheme-card.expiring::before { background: var(--gold); }
+.scheme-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--sand-dark); }
+
+.scheme-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 8px;
+}
+.scheme-tags-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.scheme-desc { font-size: 13px; color: var(--mid-brown); line-height: 1.65; margin-bottom: 14px; }
+.scheme-meta-row {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--mocha);
+}
+.scheme-meta-item { display: flex; align-items: center; gap: 5px; }
+
+.scheme-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  min-width: 160px;
+  gap: 12px;
+}
+.benefit-block { text-align: right; }
+.benefit-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--terracotta);
+}
+.benefit-period { font-size: 11px; color: var(--mocha); margin-top: 2px; }
+
+.deadline-chip {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.3px;
+}
+.deadline-urgent { background: rgba(184,80,66,0.1); color: var(--soft-red); border: 1px solid rgba(184,80,66,0.2); }
+.deadline-soon   { background: rgba(196,154,74,0.1); color: #8A6B20; border: 1px solid rgba(196,154,74,0.2); }
+.deadline-ok     { background: rgba(61,90,71,0.1); color: var(--forest); border: 1px solid rgba(61,90,71,0.2); }
+
+.scheme-apply-btn {
+  background: var(--deep-forest);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+  text-align: center;
+}
+.scheme-apply-btn:hover { background: var(--forest); }
+
+/* eligibility banner */
+.eligible-banner {
+  background: var(--deep-forest);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+.eligible-banner p { color: var(--light-mocha); font-size: 14px; }
+.eligible-banner strong { color: var(--gold); font-family: 'Playfair Display', serif; font-size: 18px; }
+
+/* skeleton loader */
+.skeleton {
+  background: linear-gradient(90deg, var(--sand) 25%, var(--warm-white) 50%, var(--sand) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.skeleton-card {
+  background: white;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* MODAL overrides for scheme detail */
+.modal-scheme-icon {
+  width: 60px; height: 60px;
+  border-radius: var(--radius-lg);
+  background: rgba(61,90,71,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.detail-cell {
+  background: var(--cream);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+.detail-cell-label { font-size: 11px; color: var(--mocha); margin-bottom: 4px; }
+.detail-cell-val { font-size: 14px; font-weight: 600; color: var(--charcoal); }
+.docs-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.doc-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--charcoal);
+}
+
+@media (max-width: 900px) {
+  .page-shell { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main { padding: 20px; }
+  .scheme-card { grid-template-columns: 1fr; }
+  .scheme-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+  .main-header { flex-direction: column; }
+  .search-sort-bar { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
+  <ul class="navbar-links">
+    <li><a href="index.html">🏠 Home</a></li>
+    <li><a href="schemes.html" class="active">📋 Schemes</a></li>
+    <li><a href="login.html" id="nav-login">🔐 Login</a></li>
+    <li><a href="signup.html" id="nav-signup">📝 Sign Up</a></li>
+    <li><a href="admin-panel.html">⚙️ Admin</a></li>
+  </ul>
+  <div id="navbar-user-area"></div>
+</nav>
+
+<div class="page-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <span class="sidebar-label">Filter Schemes</span>
+      <div class="sidebar-filter">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-select" id="f-category" onchange="applyFilters()">
+            <option value="">All Categories</option>
+            <option value="agriculture">Agriculture</option>
+            <option value="education">Education</option>
+            <option value="housing">Housing</option>
+            <option value="health">Health</option>
+            <option value="women">Women & Child</option>
+            <option value="employment">Employment</option>
+            <option value="social">Social Security</option>
+            <option value="finance">Finance & Loans</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Caste Category</label>
+          <select class="form-select" id="f-caste" onchange="applyFilters()">
+            <option value="">All</option>
+            <option value="general">General</option>
+            <option value="sc">SC</option>
+            <option value="st">ST</option>
+            <option value="obc">OBC</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Income Range</label>
+          <select class="form-select" id="f-income" onchange="applyFilters()">
+            <option value="">Any Income</option>
+            <option value="0-100000">Below ₹1 Lakh</option>
+            <option value="100000-250000">₹1L – ₹2.5L</option>
+            <option value="250000-500000">₹2.5L – ₹5L</option>
+            <option value="500000-1000000">₹5L – ₹10L</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">State</label>
+          <select class="form-select" id="f-state" onchange="applyFilters()">
+            <option value="">All States</option>
+            <option value="andhra_pradesh">Andhra Pradesh</option>
+            <option value="telangana">Telangana</option>
+            <option value="tamil_nadu">Tamil Nadu</option>
+            <option value="karnataka">Karnataka</option>
+            <option value="all_india">Central (All India)</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-full" onclick="clearFilters()" style="font-size:12px;margin-top:4px;">✕ Clear Filters</button>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <span class="sidebar-label">Browse by Type</span>
+      <ul class="sidebar-cat-list" id="cat-list">
+        <li><a onclick="filterByCategory('agriculture')" class="active">🌾 Agriculture <span class="cat-badge">42</span></a></li>
+        <li><a onclick="filterByCategory('education')">🎓 Education <span class="cat-badge">68</span></a></li>
+        <li><a onclick="filterByCategory('housing')">🏠 Housing <span class="cat-badge">31</span></a></li>
+        <li><a onclick="filterByCategory('health')">🏥 Health <span class="cat-badge">55</span></a></li>
+        <li><a onclick="filterByCategory('women')">👩 Women & Child <span class="cat-badge">47</span></a></li>
+        <li><a onclick="filterByCategory('employment')">💼 Employment <span class="cat-badge">29</span></a></li>
+        <li><a onclick="filterByCategory('social')">🛡️ Social Security <span class="cat-badge">38</span></a></li>
+        <li><a onclick="filterByCategory('finance')">💰 Finance <span class="cat-badge">24</span></a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- Eligible schemes banner (shown if logged in) -->
+    <div class="eligible-banner" id="eligible-banner" style="display:none;">
+      <div>
+        <strong id="eligible-count">0</strong> schemes matched to your profile
+        <p>Sorted by closest deadline — act fast on urgent ones!</p>
+      </div>
+      <button class="btn btn-outline" style="color:var(--light-mocha);border-color:rgba(201,184,172,0.4);white-space:nowrap;" onclick="loadEligible()">Show Only Eligible</button>
+    </div>
+
+    <div class="main-header">
+      <div class="main-header-left">
+        <h2>Government Schemes</h2>
+        <p class="result-count" id="result-count">Loading...</p>
+      </div>
+      <div class="search-sort-bar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search schemes..." id="search-input" oninput="debouncedSearch(this.value)">
+        </div>
+        <select class="form-select" style="width:auto;font-size:13px;" id="sort-select" onchange="applyFilters()">
+          <option value="deadline">Closest Deadline</option>
+          <option value="benefit">Highest Benefit</option>
+          <option value="recent">Most Recent</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="schemes-list" class="schemes-list">
+      <!-- Skeleton loaders -->
+      <div class="skeleton-card"><div class="skeleton" style="height:20px;width:60%;"></div><div class="skeleton" style="height:14px;width:40%;"></div><div class="skeleton" style="height:14px;"></div><div class="skeleton" style="height:14px;width:80%;"></div></div>
+      <div class="skeleton-card"><div class="skeleton" style="height:20px;width:70%;"></div><div class="skeleton" style="height:14px;width:35%;"></div><div class="skeleton" style="height:14px;"></div><div class="skeleton" style="height:14px;width:90%;"></div></div>
+      <div class="skeleton-card"><div class="skeleton" style="height:20px;width:55%;"></div><div class="skeleton" style="height:14px;width:50%;"></div><div class="skeleton" style="height:14px;"></div><div class="skeleton" style="height:14px;width:75%;"></div></div>
+    </div>
+
+    <div id="pagination" class="pagination"></div>
+  </main>
+</div>
+
+<!-- SCHEME DETAIL MODAL -->
+<div class="modal-overlay" id="scheme-modal" onclick="if(event.target===this)closeModal('scheme-modal')">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <div style="display:flex;gap:16px;align-items:flex-start;">
+        <div class="modal-scheme-icon" id="modal-icon">🌾</div>
+        <div>
+          <div class="modal-title" id="modal-title">Scheme Name</div>
+          <div class="small muted" id="modal-ministry">Ministry</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('scheme-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-desc" style="font-size:14px;color:var(--mid-brown);line-height:1.7;margin-bottom:20px;"></p>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--mocha);margin-bottom:8px;">Key Details</div>
+      <div class="detail-grid">
+        <div class="detail-cell">
+          <div class="detail-cell-label">Benefit Amount</div>
+          <div class="detail-cell-val" id="modal-benefit" style="color:var(--terracotta);"></div>
+        </div>
+        <div class="detail-cell">
+          <div class="detail-cell-label">Last Date to Apply</div>
+          <div class="detail-cell-val" id="modal-deadline"></div>
+        </div>
+        <div class="detail-cell">
+          <div class="detail-cell-label">Eligible Category</div>
+          <div class="detail-cell-val" id="modal-category"></div>
+        </div>
+        <div class="detail-cell">
+          <div class="detail-cell-label">Scheme ID</div>
+          <div class="detail-cell-val mono" id="modal-id" style="font-size:12px;"></div>
+        </div>
+        <div class="detail-cell">
+          <div class="detail-cell-label">Income Limit</div>
+          <div class="detail-cell-val" id="modal-income"></div>
+        </div>
+        <div class="detail-cell">
+          <div class="detail-cell-label">Eligible States</div>
+          <div class="detail-cell-val" id="modal-states"></div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--mocha);margin-top:20px;margin-bottom:8px;">Required Documents</div>
+      <div class="docs-list" id="modal-docs"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('scheme-modal')">Close</button>
+      <button class="btn btn-primary" onclick="applyNow()">Apply on Official Portal →</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+// ─── MOCK DATA (used when backend not running) ───
+const MOCK_SCHEMES = [
+  { id:'SCH001', name:'PM Kisan Samman Nidhi', category:'agriculture', icon:'🌾',
+    tags:['Agriculture','All Categories','Farmers'],
+    description:'Direct income support of ₹6,000 per year in 3 equal instalments of ₹2,000 each to all landholding farmer families across India, directly to their bank accounts.',
+    benefit_amount:6000, benefit_period:'per year', last_date:'2026-05-31',
+    eligible_category:'All', max_income:250000, states:'All India',
+    ministry:'Ministry of Agriculture & Farmers Welfare',
+    required_documents:['Aadhaar Card','Land Record (Khatoni / Patta)','Bank Passbook with IFSC','Mobile Number linked to Aadhaar'],
+    official_url:'https://pmkisan.gov.in' },
+  { id:'SCH002', name:'National Scholarship Portal (SC/ST Post-Matric)', category:'education', icon:'🎓',
+    tags:['Education','SC / ST Students','Below ₹5L Income'],
+    description:'Post-matric scholarship for SC/ST students to support higher education and reduce dropout rates. Covers tuition fees, maintenance allowance and book grants.',
+    benefit_amount:48000, benefit_period:'per year', last_date:'2026-04-15',
+    eligible_category:'SC / ST', max_income:500000, states:'All India',
+    ministry:'Ministry of Social Justice & Empowerment',
+    required_documents:['Aadhaar Card','Caste Certificate','Income Certificate','Bonafide from Institution','Bank Passbook','Previous Year Marksheet'],
+    official_url:'https://scholarships.gov.in' },
+  { id:'SCH003', name:'Pradhan Mantri Awas Yojana – Gramin', category:'housing', icon:'🏠',
+    tags:['Housing','BPL Families','Rural'],
+    description:'Financial assistance for construction of pucca house — ₹1.2 lakh in plains and ₹1.3 lakh in hilly/north-eastern areas. Linked with MGNREGS for 90/95 person-days of unskilled labour.',
+    benefit_amount:120000, benefit_period:'one-time', last_date:'2026-06-30',
+    eligible_category:'All (BPL)', max_income:300000, states:'All India',
+    ministry:'Ministry of Rural Development',
+    required_documents:['Aadhaar Card','BPL/SECC List inclusion proof','Land ownership document','Bank Account (Jan Dhan preferred)','Geotagged photo of plot'],
+    official_url:'https://pmayg.nic.in' },
+  { id:'SCH004', name:'Ayushman Bharat – PM-JAY', category:'health', icon:'🏥',
+    tags:['Health','BPL/SECC families','All India'],
+    description:'World\'s largest health assurance scheme providing ₹5 lakh per family per year for secondary and tertiary care hospitalization at over 10,000 empanelled hospitals.',
+    benefit_amount:500000, benefit_period:'per year', last_date:'2026-04-08',
+    eligible_category:'All (SECC)', max_income:500000, states:'All India',
+    ministry:'Ministry of Health & Family Welfare',
+    required_documents:['Aadhaar Card','Ration Card','SECC/BPL list inclusion','Family photo'],
+    official_url:'https://pmjay.gov.in' },
+  { id:'SCH005', name:'Kanya Sumangala Yojana (UP)', category:'women', icon:'👧',
+    tags:['Women & Child','Girl Child','UP Residents'],
+    description:'Financial support in 6 stages from birth to graduation for girl children in UP to promote girls\' education and health, and discourage female foeticide.',
+    benefit_amount:15000, benefit_period:'per girl (6 instalments)', last_date:'2026-07-31',
+    eligible_category:'All', max_income:300000, states:'Uttar Pradesh',
+    ministry:'Dept. of Women & Child Dev., UP',
+    required_documents:['Aadhaar Card','Birth Certificate','Income Certificate','Bank Account (mother/girl)','School Enrollment Proof (for later stages)'],
+    official_url:'https://mksy.up.gov.in' },
+  { id:'SCH006', name:'PM SVANidhi – Street Vendor Loan', category:'finance', icon:'🛒',
+    tags:['Finance','Street Vendors','Self-Employed'],
+    description:'Working capital loan of ₹10,000 (first time), ₹20,000 (second), ₹50,000 (third) for street vendors to resume livelihoods. Subsidised interest and no collateral required.',
+    benefit_amount:10000, benefit_period:'loan (no collateral)', last_date:'2026-12-31',
+    eligible_category:'All (Street Vendors)', max_income:200000, states:'All India',
+    ministry:'Ministry of Housing & Urban Affairs',
+    required_documents:['Aadhaar Card','Vending Certificate / ULB letter','Bank Account','Vendor Photo'],
+    official_url:'https://pmsvanidhi.mohua.gov.in' },
+];
+
+let currentSchemes = [...MOCK_SCHEMES];
+let currentSchemeForModal = null;
+
+// ─── LOAD SCHEMES ───
+async function loadSchemes(params = {}) {
+  try {
+    const data = await SchemesAPI.list(params);
+    currentSchemes = data.results || data;
+  } catch {
+    currentSchemes = MOCK_SCHEMES; // fallback
+  }
+  renderSchemes(currentSchemes);
+}
+
+async function loadEligible() {
+  if (!Auth.isLoggedIn()) {
+    showToast('Please login to see schemes matched to your profile', 'info');
+    return;
+  }
+  showLoading('Finding your eligible schemes...');
+  try {
+    const data = await SchemesAPI.getEligible();
+    currentSchemes = data.results || data;
+    renderSchemes(currentSchemes);
+  } catch {
+    showToast('Could not load eligible schemes', 'error');
+  }
+  hideLoading();
+}
+
+// ─── RENDER ───
+function renderSchemes(schemes) {
+  const list = document.getElementById('schemes-list');
+  document.getElementById('result-count').textContent = `Showing ${schemes.length} scheme${schemes.length !== 1 ? 's' : ''}`;
+
+  if (!schemes.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No schemes found</div><div class="empty-desc">Try adjusting your filters or search terms</div><button class="btn btn-primary" onclick="clearFilters()">Clear Filters</button></div>`;
+    return;
+  }
+
+  list.innerHTML = schemes.map((s, i) => {
+    const dl = daysLeft(s.last_date);
+    const urgency = dl < 15 ? 'urgent' : dl < 45 ? 'expiring' : '';
+    const dlClass = dl < 15 ? 'deadline-urgent' : dl < 45 ? 'deadline-soon' : 'deadline-ok';
+    const dlText = dl < 0 ? '⛔ Expired' : dl < 15 ? `⚠ ${dl} days left` : `📅 ${formatDate(s.last_date)}`;
+
+    return `
+    <div class="scheme-card ${urgency} animate-in" style="animation-delay:${i*0.06}s" onclick="openSchemeDetail('${s.id}')">
+      <div>
+        <div class="scheme-name">${s.icon} ${s.name}</div>
+        <div class="scheme-tags-row">
+          ${(s.tags||[]).map(t => `<span class="tag tag-forest">${t}</span>`).join('')}
+        </div>
+        <div class="scheme-desc">${s.description}</div>
+        <div class="scheme-meta-row">
+          <span class="scheme-meta-item">🏛 ${s.ministry}</span>
+          <span class="scheme-meta-item">📄 ${(s.required_documents||[]).length} documents</span>
+          <span class="scheme-meta-item">📍 ${s.states}</span>
+        </div>
+      </div>
+      <div class="scheme-right">
+        <div class="benefit-block">
+          <div class="benefit-amount">${formatINR(s.benefit_amount)}</div>
+          <div class="benefit-period">${s.benefit_period}</div>
+        </div>
+        <span class="deadline-chip ${dlClass}">${dlText}</span>
+        <button class="scheme-apply-btn" onclick="event.stopPropagation();window.open('${s.official_url||'#'}','_blank')">Apply Now →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── SCHEME DETAIL MODAL ───
+function openSchemeDetail(id) {
+  const s = MOCK_SCHEMES.find(x => x.id === id) || currentSchemes.find(x => x.id == id);
+  if (!s) return;
+  currentSchemeForModal = s;
+
+  document.getElementById('modal-icon').textContent = s.icon;
+  document.getElementById('modal-title').textContent = s.name;
+  document.getElementById('modal-ministry').textContent = `🏛 ${s.ministry}`;
+  document.getElementById('modal-desc').textContent = s.description;
+  document.getElementById('modal-benefit').textContent = `${formatINR(s.benefit_amount)} ${s.benefit_period}`;
+  document.getElementById('modal-deadline').textContent = formatDate(s.last_date);
+  document.getElementById('modal-category').textContent = s.eligible_category;
+  document.getElementById('modal-id').textContent = s.id;
+  document.getElementById('modal-income').textContent = s.max_income ? `Up to ${formatINR(s.max_income)}/year` : 'No limit';
+  document.getElementById('modal-states').textContent = s.states;
+  document.getElementById('modal-docs').innerHTML = (s.required_documents||[]).map(d => `<div class="doc-item">📄 ${d}</div>`).join('');
+
+  openModal('scheme-modal');
+}
+
+function applyNow() {
+  if (currentSchemeForModal?.official_url) window.open(currentSchemeForModal.official_url, '_blank');
+  else showToast('Visit official government website for application', 'info');
+}
+
+// ─── FILTERS ───
+function applyFilters() {
+  const params = {
+    category: document.getElementById('f-category').value,
+    caste: document.getElementById('f-caste').value,
+    income: document.getElementById('f-income').value,
+    state: document.getElementById('f-state').value,
+    ordering: document.getElementById('sort-select').value,
+  };
+  // Filter mock data locally
+  let filtered = MOCK_SCHEMES;
+  if (params.category) filtered = filtered.filter(s => s.category === params.category);
+  renderSchemes(filtered);
+}
+
+function filterByCategory(cat) {
+  document.querySelectorAll('.sidebar-cat-list a').forEach(a => a.classList.remove('active'));
+  event.target.closest('a').classList.add('active');
+  document.getElementById('f-category').value = cat;
+  applyFilters();
+}
+
+function clearFilters() {
+  ['f-category','f-caste','f-income','f-state'].forEach(id => document.getElementById(id).value = '');
+  document.querySelectorAll('.sidebar-cat-list a').forEach(a => a.classList.remove('active'));
+  loadSchemes();
+}
+
+const debouncedSearch = debounce(q => {
+  const filtered = MOCK_SCHEMES.filter(s =>
+    s.name.toLowerCase().includes(q.toLowerCase()) ||
+    s.description.toLowerCase().includes(q.toLowerCase())
+  );
+  renderSchemes(filtered);
+}, 300);
+
+// ─── INIT ───
+updateNavbar();
+
+// Check URL params
+const urlParams = new URLSearchParams(window.location.search);
+const catParam = urlParams.get('cat');
+
+window.addEventListener('load', () => {
+  loadSchemes();
+
+  // Show eligible banner if logged in
+  if (Auth.isLoggedIn()) {
+    document.getElementById('eligible-banner').style.display = 'flex';
+    document.getElementById('eligible-count').textContent = '12';
+  }
+
+  if (catParam) {
+    document.getElementById('f-category').value = catParam;
+    applyFilters();
+  }
+});
+</script>
+</body>
+</html>

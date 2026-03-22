@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SarkariYojana — Check Your Eligibility for Government Schemes</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+/* ─── PAGE-SPECIFIC STYLES ─── */
+.hero {
+  background: var(--deep-forest);
+  position: relative;
+  overflow: hidden;
+  padding: 100px 64px 80px;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -120px; right: -80px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(196,120,74,0.2) 0%, transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -100px; left: 5%;
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(61,90,71,0.4) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-inner { max-width: 960px; margin: 0 auto; position: relative; z-index: 2; }
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(196,120,74,0.18);
+  border: 1px solid rgba(196,120,74,0.35);
+  padding: 7px 18px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  animation: fadeInUp 0.6s ease both;
+}
+.hero h1 {
+  color: var(--warm-white);
+  margin-bottom: 22px;
+  animation: fadeInUp 0.6s 0.1s ease both;
+}
+.hero h1 em { color: var(--terracotta); font-style: normal; }
+.hero p {
+  font-size: 18px;
+  color: var(--light-mocha);
+  line-height: 1.75;
+  max-width: 580px;
+  margin-bottom: 44px;
+  animation: fadeInUp 0.6s 0.2s ease both;
+}
+.hero-cta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.6s 0.3s ease both;
+}
+
+/* Stats bar */
+.stats-bar {
+  background: var(--charcoal);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.stat-cell {
+  padding: 28px 32px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+  position: relative;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--terracotta);
+  display: block;
+}
+.stat-label { font-size: 12px; color: var(--light-mocha); margin-top: 4px; letter-spacing: 0.5px; }
+
+/* How it works */
+.section { padding: 80px 64px; max-width: 1100px; margin: 0 auto; }
+.section-header { text-align: center; margin-bottom: 56px; }
+.section-header h2 { margin-bottom: 12px; }
+.section-header p { font-size: 16px; color: var(--mocha); max-width: 500px; margin: 0 auto; }
+
+.steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.step-card {
+  background: white;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  position: relative;
+  transition: var(--transition);
+}
+.step-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.step-num {
+  position: absolute;
+  top: -14px; left: 28px;
+  background: var(--terracotta);
+  color: white;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace;
+}
+.step-icon {
+  width: 52px; height: 52px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  margin-bottom: 18px;
+}
+.step-icon-forest { background: rgba(61,90,71,0.1); }
+.step-icon-terra  { background: rgba(212,96,58,0.1); }
+.step-icon-gold   { background: rgba(196,154,74,0.1); }
+.step-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; font-family: 'Playfair Display', serif; }
+.step-desc  { font-size: 14px; color: var(--mocha); line-height: 1.7; }
+
+/* Categories */
+.categories-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.category-card {
+  background: white;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+.category-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--terracotta); }
+.cat-icon { font-size: 32px; margin-bottom: 12px; }
+.cat-name { font-size: 14px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.cat-count { font-size: 12px; color: var(--mocha); }
+
+/* CTA Banner */
+.cta-banner {
+  background: var(--deep-forest);
+  padding: 80px 64px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-banner::before {
+  content: '';
+  position: absolute;
+  top: -80px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(196,120,74,0.15) 0%, transparent 70%);
+}
+.cta-banner h2 { color: var(--warm-white); margin-bottom: 16px; position: relative; z-index: 2; }
+.cta-banner p { font-size: 16px; color: var(--light-mocha); max-width: 500px; margin: 0 auto 36px; position: relative; z-index: 2; }
+.cta-banner .btn { position: relative; z-index: 2; }
+
+/* Footer */
+footer {
+  background: var(--ink);
+  padding: 48px 64px 32px;
+  color: var(--light-mocha);
+}
+.footer-top {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+.footer-brand { }
+.footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--warm-white);
+  margin-bottom: 14px;
+}
+.footer-logo span { color: var(--terracotta); }
+.footer-desc { font-size: 13px; line-height: 1.7; color: rgba(201,184,172,0.7); max-width: 260px; }
+.footer-col h4 { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--light-mocha); margin-bottom: 16px; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-col ul li a { font-size: 13px; color: rgba(201,184,172,0.6); transition: color 0.2s; }
+.footer-col ul li a:hover { color: var(--warm-white); }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(201,184,172,0.5);
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
+  <ul class="navbar-links">
+    <li><a href="index.html" class="active"><span class="nav-icon">🏠</span> Home</a></li>
+    <li><a href="schemes.html"><span class="nav-icon">📋</span> Schemes</a></li>
+    <li><a href="login.html"><span class="nav-icon">🔐</span> Login</a></li>
+    <li><a href="signup.html"><span class="nav-icon">📝</span> Sign Up</a></li>
+    <li><a href="admin-panel.html"><span class="nav-icon">⚙️</span> Admin</a></li>
+  </ul>
+  <div id="navbar-user-area"></div>
+  <div class="navbar-mobile-toggle" onclick="toggleMobileMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">🇮🇳 &nbsp;भारत सरकार · Government of India Portal</div>
+    <h1>Check Your <em>Eligibility</em><br>for Government Schemes</h1>
+    <p>Discover welfare schemes perfectly matched to your profile. From agriculture subsidies to education grants, housing support and health coverage — 500+ schemes, one platform.</p>
+    <div class="hero-cta">
+      <a href="signup.html" class="btn btn-primary btn-lg">Get Started Free →</a>
+      <a href="schemes.html" class="btn btn-outline btn-lg" style="color:var(--light-mocha); border-color:rgba(201,184,172,0.35)">Browse All Schemes</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-cell">
+    <span class="stat-num" id="s1">0</span>
+    <div class="stat-label">Active Schemes</div>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-num" id="s2">0</span>
+    <div class="stat-label">States & UTs Covered</div>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-num" id="s3">0</span>
+    <div class="stat-label">Registered Users</div>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-num" id="s4">0</span>
+    <div class="stat-label">Scheme Matches Made</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div style="background: var(--warm-white);">
+<div class="section">
+  <div class="section-header animate-in">
+    <p class="section-label">Simple Process</p>
+    <h2>How It Works</h2>
+    <p>Three steps to discover every government scheme you deserve</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card animate-in animate-in-delay-1">
+      <div class="step-num">01</div>
+      <div class="step-icon step-icon-forest">📝</div>
+      <div class="step-title">Create Your Profile</div>
+      <div class="step-desc">Sign up and fill your details — name, category (SC/ST/OBC/General), income, occupation, and parental information. Takes 3 minutes.</div>
+    </div>
+    <div class="step-card animate-in animate-in-delay-2">
+      <div class="step-num">02</div>
+      <div class="step-icon step-icon-terra">🎯</div>
+      <div class="step-title">Get Matched Instantly</div>
+      <div class="step-desc">Our eligibility engine cross-checks your profile against all active schemes and shows you exactly which ones you qualify for — sorted by closest deadline.</div>
+    </div>
+    <div class="step-card animate-in animate-in-delay-3">
+      <div class="step-num">03</div>
+      <div class="step-icon step-icon-gold">📄</div>
+      <div class="step-title">Apply with Confidence</div>
+      <div class="step-desc">See the required documents, benefit amount (per year/month), and last date. Click Apply to go directly to the official government portal.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="section">
+  <div class="section-header animate-in">
+    <p class="section-label">Browse by type</p>
+    <h2>Scheme Categories</h2>
+    <p>Find schemes across all major welfare sectors</p>
+  </div>
+  <div class="categories-grid">
+    <a href="schemes.html?cat=agriculture" class="category-card animate-in animate-in-delay-1">
+      <div class="cat-icon">🌾</div>
+      <div class="cat-name">Agriculture</div>
+      <div class="cat-count">42 schemes</div>
+    </a>
+    <a href="schemes.html?cat=education" class="category-card animate-in animate-in-delay-2">
+      <div class="cat-icon">🎓</div>
+      <div class="cat-name">Education</div>
+      <div class="cat-count">68 schemes</div>
+    </a>
+    <a href="schemes.html?cat=housing" class="category-card animate-in animate-in-delay-3">
+      <div class="cat-icon">🏠</div>
+      <div class="cat-name">Housing</div>
+      <div class="cat-count">31 schemes</div>
+    </a>
+    <a href="schemes.html?cat=health" class="category-card animate-in animate-in-delay-4">
+      <div class="cat-icon">🏥</div>
+      <div class="cat-name">Health</div>
+      <div class="cat-count">55 schemes</div>
+    </a>
+    <a href="schemes.html?cat=women" class="category-card animate-in">
+      <div class="cat-icon">👩</div>
+      <div class="cat-name">Women & Child</div>
+      <div class="cat-count">47 schemes</div>
+    </a>
+    <a href="schemes.html?cat=employment" class="category-card animate-in animate-in-delay-1">
+      <div class="cat-icon">💼</div>
+      <div class="cat-name">Employment</div>
+      <div class="cat-count">29 schemes</div>
+    </a>
+    <a href="schemes.html?cat=social" class="category-card animate-in animate-in-delay-2">
+      <div class="cat-icon">🛡️</div>
+      <div class="cat-name">Social Security</div>
+      <div class="cat-count">38 schemes</div>
+    </a>
+    <a href="schemes.html?cat=finance" class="category-card animate-in animate-in-delay-3">
+      <div class="cat-icon">💰</div>
+      <div class="cat-name">Finance & Loans</div>
+      <div class="cat-count">24 schemes</div>
+    </a>
+  </div>
+</div>
+
+<!-- CTA BANNER -->
+<section class="cta-banner">
+  <h2>Don't Miss Your Benefits</h2>
+  <p>Thousands of Indians miss out on welfare schemes they deserve — simply because they don't know they exist. Sign up free and check your eligibility in 3 minutes.</p>
+  <a href="signup.html" class="btn btn-primary btn-lg">Check My Eligibility Now →</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="footer-logo">Sarkari<span>Yojana</span></div>
+      <p class="footer-desc">India's most comprehensive government schemes eligibility portal. Helping citizens discover their entitlements since 2024.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Platform</h4>
+      <ul>
+        <li><a href="schemes.html">Browse Schemes</a></li>
+        <li><a href="signup.html">Create Account</a></li>
+        <li><a href="login.html">Sign In</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Categories</h4>
+      <ul>
+        <li><a href="schemes.html?cat=agriculture">Agriculture</a></li>
+        <li><a href="schemes.html?cat=education">Education</a></li>
+        <li><a href="schemes.html?cat=health">Health</a></li>
+        <li><a href="schemes.html?cat=housing">Housing</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Use</a></li>
+        <li><a href="#">Disclaimer</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 SarkariYojana. Government portal for scheme eligibility.</span>
+    <span>Data sourced from official government databases</span>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+<div id="loading-overlay" class="loading-overlay hidden">
+  <div class="spinner"></div><p>Loading...</p>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+// Update navbar
+updateNavbar();
+
+// Animate stats (try API first, fallback to defaults)
+async function loadStats() {
+  let stats = { total_schemes: 312, states: 36, users: 1847, matches: 14392 };
+  try {
+    const data = await AdminAPI.getStats();
+    stats = { ...stats, ...data };
+  } catch {}
+  setTimeout(() => {
+    animateCounter(document.getElementById('s1'), stats.total_schemes || 312);
+    animateCounter(document.getElementById('s2'), stats.states || 36);
+    animateCounter(document.getElementById('s3'), stats.users || 1847);
+    animateCounter(document.getElementById('s4'), stats.matches || 14392);
+  }, 400);
+}
+loadStats();
+
+function toggleMobileMenu() {
+  const links = document.querySelector('.navbar-links');
+  links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+}
+
+// Scroll animations
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.animate-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
