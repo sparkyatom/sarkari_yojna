@@ -61,17 +61,39 @@ class AdminStatsView(APIView):
 class AdminSchemeListCreateView(APIView):
     permission_classes = [IsAdminUser]
 
+    # def get(self, request):
+    #     qs = Scheme.objects.all()
+    #     category = request.query_params.get('category')
+    #     if category:
+    #         qs = qs.filter(category=category)
+    #     search = request.query_params.get('search')
+    #     if search:
+    #         qs = qs.filter(name__icontains=search)
+    #     qs = qs.order_by('last_date')
+    #     serializer = SchemeListSerializer(qs, many=True)
+    #     return Response({'count': qs.count(), 'results': serializer.data})
+    
+
     def get(self, request):
-        qs = Scheme.objects.all()
-        category = request.query_params.get('category')
-        if category:
-            qs = qs.filter(category=category)
-        search = request.query_params.get('search')
-        if search:
-            qs = qs.filter(name__icontains=search)
-        qs = qs.order_by('last_date')
-        serializer = SchemeListSerializer(qs, many=True)
-        return Response({'count': qs.count(), 'results': serializer.data})
+
+      qs = Scheme.objects.all()
+
+      category = request.query_params.get('category')
+      if category is not None:
+        qs = qs.filter(category=category)
+
+      search = request.query_params.get('search')
+      if search is not None:
+        qs = qs.filter(name__icontains=search)
+
+      qs = qs.order_by('last_date')
+
+      serializer = SchemeListSerializer(qs, many=True)
+
+      return Response({
+        'count': qs.count(),
+        'results': serializer.data
+      })
 
     def post(self, request):
         serializer = SchemeCreateSerializer(data=request.data)

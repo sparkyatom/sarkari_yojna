@@ -77,6 +77,17 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'sarkari_yojana_db',
+#         'USER': 'postgres',
+#         'PASSWORD': '090614',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
+
 # ─── CUSTOM USER MODEL ───
 AUTH_USER_MODEL = 'users.UserProfile'
 
