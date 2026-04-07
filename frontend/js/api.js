@@ -3,7 +3,7 @@
    Base URL: http://localhost:8000/api
 ═══════════════════════════════════════════════════ */
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 'http://127.0.0.1:8000/api';
 
 // ─── TOKEN HELPERS ───
 const Auth = {
@@ -30,8 +30,10 @@ const Auth = {
 // ─── CORE FETCH WRAPPER ───
 async function apiFetch(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
+
+  const isAuthFree = path.includes('/auth/login') || path.includes('/auth/register');
   const token = Auth.getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token && !isAuthFree) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
@@ -59,7 +61,10 @@ async function apiFetch(path, options = {}) {
   }
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw data;
+  if (!res.ok) {
+  console.error("API Error:", data);
+  throw data;
+  }
   return data;
 }
 
@@ -168,6 +173,8 @@ const AdminAPI = {
     return apiFetch('/admin/uploads/');
   }
 };
+
+
 
 // ═══════════════════════════════════
 // UI HELPERS (shared across pages)
