@@ -251,7 +251,7 @@
   <ul class="navbar-links">
     <li><a href="index.html">🏠 Home</a></li>
     <li><a href="schemes.html">📋 Schemes</a></li>
-    <li><a href="admin-panel.html" class="active">⚙️ Admin Panel</a></li>
+    <ul class="navbar-links" id="navbar-links"></ul>
   </ul>
   <div id="navbar-user-area"></div>
 </nav>
@@ -754,6 +754,15 @@
 <div id="toast-container"></div>
 
 <script src="js/api.js"></script>
+// 🚨 BLOCK NON-ADMIN ACCESS
+(function () {
+  const user = JSON.parse(localStorage.getItem('sy_user'));
+
+  if (!user || !user.is_admin) {
+    alert("Access denied. Admins only.");
+    window.location.href = "index.html";
+  }
+})();
 <script>
 // ─── MOCK DATA ───
 const MOCK_ADMIN_SCHEMES = [
@@ -930,23 +939,64 @@ function handleDrop(e, zoneId, progressId, type) {
 function handleFileInput(input, progressId, type) {
   if (input.files[0]) simulateUpload(input.files[0], progressId, type);
 }
-function simulateUpload(file, progressId, type) {
+async function simulateUpload(file, progressId, type) {
   const prog = document.getElementById(progressId);
   const fill = document.getElementById(progressId.replace('progress','fill'));
   const text = document.getElementById(progressId.replace('progress','text'));
+
   prog.style.display = 'block';
-  let pct = 0;
-  const iv = setInterval(() => {
-    pct = Math.min(pct + Math.random()*15+5, 100);
-    fill.style.width = pct + '%';
-    text.textContent = `Uploading "${file.name}"... ${Math.round(pct)}%`;
-    if (pct >= 100) {
-      clearInterval(iv);
-      text.textContent = `✓ "${file.name}" uploaded successfully!`;
-      showToast(`✅ "${file.name}" processed — schemes imported!`,'success');
-      // In production: AdminAPI.uploadExcel(file)
+
+  // 🔥 START FAKE PROGRESS (for UI smoothness)
+  let pct = 10;
+  fill.style.width = pct + '%';
+  text.textContent = `Uploading "${file.name}"...`;
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('sy_access_token');
+
+    const res = await fetch('http://127.0.0.1:8000/api/admin/upload/excel/', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      body: formData
+    });
+
+    const data = await res.json();
+    const hasErrors = Array.isArray(data.errors) && data.errors.length > 0;
+
+    // 🔥 COMPLETE PROGRESS
+    fill.style.width = '100%';
+
+    if (res.ok && !hasErrors) {
+      text.textContent = `✓ ${data.message}`;
+      showToast(`✅ ${data.created} schemes imported!`, 'success');
+    } else if (res.ok && hasErrors) {
+      const errorSummary = `${data.errors.length} issues`;
+      text.textContent = `⚠ ${data.message} (${errorSummary})`;
+      showToast(`⚠ ${errorSummary}`, 'warning');
+      console.group('Upload warnings');
+      data.errors.forEach(err => console.warn(err));
+      console.groupEnd();
+    } else {
+      const errorSummary = data.detail || (hasErrors ? `${data.errors.length} issues` : 'Upload failed');
+      text.textContent = `❌ ${data.message || errorSummary}`;
+      showToast(`❌ ${errorSummary}`, 'error');
+      if (hasErrors) {
+        console.group('Upload errors');
+        data.errors.forEach(err => console.error(err));
+        console.groupEnd();
+      }
     }
-  }, 180);
+
+  } catch (err) {
+    fill.style.width = '100%';
+    text.textContent = '❌ Upload failed';
+    showToast('❌ Network error', 'error');
+  }
 }
 
 function downloadTemplate() {

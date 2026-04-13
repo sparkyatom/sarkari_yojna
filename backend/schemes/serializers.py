@@ -6,6 +6,7 @@ from .models import Scheme
 class SchemeListSerializer(serializers.ModelSerializer):
     """Lighter serializer for listing — no full description"""
     required_documents = serializers.SerializerMethodField()
+    applied = serializers.SerializerMethodField()
 
     class Meta:
         model  = Scheme
@@ -16,10 +17,18 @@ class SchemeListSerializer(serializers.ModelSerializer):
             'benefit_amount', 'benefit_period',
             'last_date', 'status', 'description',
             'required_documents', 'official_url',
+            'applied',
         ]
 
     def get_required_documents(self, obj):
         return obj.get_documents_list()
+
+    def get_applied(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        from users.models import UserSchemeStatus
+        return UserSchemeStatus.objects.filter(user=request.user, scheme=obj, applied=True).exists()
 
 
 class SchemeDetailSerializer(SchemeListSerializer):

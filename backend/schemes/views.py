@@ -2,23 +2,26 @@
 schemes/views.py
 Public scheme listing + eligible schemes for logged-in users
 """
+from datetime import timedelta
+
 from rest_framework import generics, filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 
 from .models import Scheme
 from .serializers import SchemeListSerializer, SchemeDetailSerializer
 from core.matcher import get_eligible_schemes
+from users.models import UserSchemeStatus
 
 
 class SchemeListView(generics.ListAPIView):
     """
     GET /api/schemes/
     Public — returns all active schemes with optional filters.
-    Query params: category, caste, state, search, ordering
+    Query params: category, caste, state, search, ordering, eligible
     """
     serializer_class    = SchemeListSerializer
     permission_classes  = [AllowAny]
@@ -27,8 +30,24 @@ class SchemeListView(generics.ListAPIView):
     ordering_fields     = ['last_date', 'benefit_amount', 'created_at']
     ordering            = ['last_date']
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
     def get_queryset(self):
-        qs = Scheme.objects.filter(status='active')
+        today = timezone.now().date()
+        # Start with active schemes that are not yet expired
+        qs = Scheme.objects.filter(status='active').exclude(last_date__lt=today)
+
+        # Eligible filter (requires auth) — only when explicitly requested
+        eligible = self.request.query_params.get('eligible')
+        if eligible and str(eligible).lower() in ('1', 'true', 'yes'):
+            if not self.request.user.is_authenticated:
+                return Scheme.objects.none()
+            eligible_qs = get_eligible_schemes(self.request.user)
+            eligible_ids = [s.id for s in eligible_qs]
+            qs = qs.filter(id__in=eligible_ids)
 
         # Category filter
         category = self.request.query_params.get('category')
@@ -45,7 +64,8 @@ class SchemeListView(generics.ListAPIView):
         # State filter
         state = self.request.query_params.get('state')
         if state:
-            qs = qs.filter(Q(eligible_state='all') | Q(eligible_state=state))
+            norm = str(state).replace('_', ' ').strip().lower()
+            qs = qs.filter(Q(eligible_state='all') | Q(eligible_state__icontains=norm))
 
         # Income filter
         income = self.request.query_params.get('income')
@@ -56,7 +76,8 @@ class SchemeListView(generics.ListAPIView):
             except ValueError:
                 pass
 
-        return qs
+        # Default ordering: closest deadline first
+        return qs.order_by('last_date')
 
 
 class SchemeDetailView(generics.RetrieveAPIView):
@@ -69,15 +90,122 @@ class SchemeDetailView(generics.RetrieveAPIView):
 class EligibleSchemesView(APIView):
     """
     GET /api/schemes/eligible/
-    Requires authentication — returns schemes matching the user's profile
+    Requires authentication — returns schemes matching the user's profile in priority order
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user    = request.user
+        user = request.user
+        today = timezone.now().date()
         schemes = get_eligible_schemes(user)
-        serializer = SchemeListSerializer(schemes, many=True)
+        
+        # Categorize for priority sorting
+        schemes_list = list(schemes)
+        at_risk = [s for s in schemes_list if today <= s.last_date <= today + timedelta(days=10)]
+        future = [s for s in schemes_list if s.last_date > today + timedelta(days=10)]
+        
+        # Return at-risk first, then future
+        prioritized = at_risk + future
+        
+        serializer = SchemeListSerializer(prioritized, many=True, context={'request': request})
+        return Response({
+            'count': len(prioritized),
+            'results': serializer.data,
+        })
+
+
+class ApplySchemeView(APIView):
+    """POST /api/schemes/apply/ — mark a scheme applied or un-applied for the current user."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        scheme_id = request.data.get('scheme_id')
+        applied = request.data.get('applied')
+
+        if scheme_id is None:
+            return Response({'detail': 'scheme_id is required.'}, status=400)
+
+        try:
+            scheme = Scheme.objects.get(pk=scheme_id)
+        except Scheme.DoesNotExist:
+            return Response({'detail': 'Scheme not found.'}, status=404)
+
+        if applied in [True, 'true', 'True', '1', 1]:
+            status_obj, _ = UserSchemeStatus.objects.get_or_create(user=request.user, scheme=scheme)
+            status_obj.applied = True
+            status_obj.applied_date = timezone.now()
+            status_obj.save()
+            return Response({'scheme_id': scheme.id, 'applied': True})
+
+        UserSchemeStatus.objects.filter(user=request.user, scheme=scheme).delete()
+        return Response({'scheme_id': scheme.id, 'applied': False})
+
+
+class AppliedSchemesView(APIView):
+    """GET /api/schemes/applied/ — user applied schemes."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        statuses = UserSchemeStatus.objects.filter(user=request.user, applied=True).select_related('scheme')
+        schemes = [status.scheme for status in statuses]
+        serializer = SchemeListSerializer(schemes, many=True, context={'request': request})
         return Response({
             'count':   len(schemes),
             'results': serializer.data,
         })
+
+
+class SchemeCategoriesView(APIView):
+    """GET /api/schemes/categorized/ — categorized schemes for the logged-in user with prioritization."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+        applied_ids = set(UserSchemeStatus.objects.filter(user=user, applied=True).values_list('scheme__id', flat=True))
+
+        eligible_all = get_eligible_schemes(user)
+        eligible = eligible_all.exclude(id__in=applied_ids)
+        applied = Scheme.objects.filter(id__in=applied_ids, status='active')
+        missed = Scheme.objects.filter(last_date__lt=today, status='active')
+        at_risk = Scheme.objects.filter(status='active', last_date__gte=today, last_date__lte=today + timedelta(days=10)).order_by('last_date')
+        future = Scheme.objects.filter(status='active', last_date__gt=today + timedelta(days=10), last_date__lte=today + timedelta(days=730)).order_by('last_date')
+
+        return Response({
+            'applied': {
+                'count': applied.count(),
+                'results': SchemeListSerializer(applied, many=True, context={'request': request}).data,
+            },
+            'eligible': {
+                'count': eligible.count(),
+                'results': SchemeListSerializer(eligible, many=True, context={'request': request}).data,
+            },
+            'missed': {
+                'count': missed.count(),
+                'results': SchemeListSerializer(missed, many=True, context={'request': request}).data,
+            },
+            'at_risk': {
+                'count': at_risk.count(),
+                'results': SchemeListSerializer(at_risk, many=True, context={'request': request}).data,
+            },
+            'future': {
+                'count': future.count(),
+                'results': SchemeListSerializer(future, many=True, context={'request': request}).data,
+            },
+        })
+
+
+class CategoryCountsView(APIView):
+    """GET /api/schemes/category-counts/ — counts per category matching current filters."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        # Get the filtered queryset using the same logic as SchemeListView
+        list_view = SchemeListView()
+        list_view.request = request
+        qs = list_view.get_queryset()
+        
+        # Count by category
+        counts = qs.values('category').annotate(count=Count('category')).order_by('category')
+        result = {item['category']: item['count'] for item in counts}
+        return Response(result)

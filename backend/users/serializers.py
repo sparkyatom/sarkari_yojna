@@ -4,6 +4,7 @@ Serializers for registration, login response, and profile
 """
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from datetime import date
 
 User = get_user_model()
 
@@ -43,19 +44,36 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_password(password)
         user.save()
+
+        if not user.family_size:
+           user.family_size = 1
+           user.save()
+           
         return user
 
 
 class UserSummarySerializer(serializers.ModelSerializer):
     """Minimal user info returned in JWT login response"""
+    age = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model  = User
         fields = ['id', 'username', 'full_name', 'email', 'is_admin',
-                  'category', 'occupation', 'state', 'income_range', 'profile_pic']
-        read_only_fields = ['id', 'is_admin']
+                  'category', 'occupation', 'state', 'income_range', 'profile_pic', 'age']
+        read_only_fields = ['id', 'is_admin', 'age']
+
+    def get_age(self, obj):
+        dob = getattr(obj, 'date_of_birth', None)
+        if not dob:
+            return None
+        today = date.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        return age
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    age = serializers.SerializerMethodField(read_only=True)
+    display_name = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model  = User
         fields = [
@@ -64,5 +82,17 @@ class ProfileSerializer(serializers.ModelSerializer):
             'aadhaar', 'income_range', 'occupation', 'state', 'has_land',
             'father_name', 'mother_name', 'family_size',
             'profile_pic', 'is_admin', 'date_joined',
+            'age', 'display_name',
         ]
-        read_only_fields = ['id', 'is_admin', 'date_joined']
+        read_only_fields = ['id', 'is_admin', 'date_joined', 'age']
+
+    def get_age(self, obj):
+        dob = getattr(obj, 'date_of_birth', None)
+        if not dob:
+            return None
+        today = date.today()
+        return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+    def get_display_name(self, obj):
+        # Prefer full_name, fall back to username
+        return obj.full_name or obj.username

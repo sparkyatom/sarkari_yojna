@@ -338,14 +338,14 @@
     <div class="sidebar-section">
       <span class="sidebar-label">Browse by Type</span>
       <ul class="sidebar-cat-list" id="cat-list">
-        <li><a onclick="filterByCategory('agriculture')" class="active">🌾 Agriculture <span class="cat-badge">42</span></a></li>
-        <li><a onclick="filterByCategory('education')">🎓 Education <span class="cat-badge">68</span></a></li>
-        <li><a onclick="filterByCategory('housing')">🏠 Housing <span class="cat-badge">31</span></a></li>
-        <li><a onclick="filterByCategory('health')">🏥 Health <span class="cat-badge">55</span></a></li>
-        <li><a onclick="filterByCategory('women')">👩 Women & Child <span class="cat-badge">47</span></a></li>
-        <li><a onclick="filterByCategory('employment')">💼 Employment <span class="cat-badge">29</span></a></li>
-        <li><a onclick="filterByCategory('social')">🛡️ Social Security <span class="cat-badge">38</span></a></li>
-        <li><a onclick="filterByCategory('finance')">💰 Finance <span class="cat-badge">24</span></a></li>
+        <li><a onclick="filterByCategory('agriculture')" class="active">🌾 Agriculture <span class="cat-badge" id="cat-agriculture">0</span></a></li>
+        <li><a onclick="filterByCategory('education')">🎓 Education <span class="cat-badge" id="cat-education">0</span></a></li>
+        <li><a onclick="filterByCategory('housing')">🏠 Housing <span class="cat-badge" id="cat-housing">0</span></a></li>
+        <li><a onclick="filterByCategory('health')">🏥 Health <span class="cat-badge" id="cat-health">0</span></a></li>
+        <li><a onclick="filterByCategory('women')">👩 Women & Child <span class="cat-badge" id="cat-women">0</span></a></li>
+        <li><a onclick="filterByCategory('employment')">💼 Employment <span class="cat-badge" id="cat-employment">0</span></a></li>
+        <li><a onclick="filterByCategory('social')">🛡️ Social Security <span class="cat-badge" id="cat-social">0</span></a></li>
+        <li><a onclick="filterByCategory('finance')">💰 Finance <span class="cat-badge" id="cat-finance">0</span></a></li>
       </ul>
     </div>
   </aside>
@@ -448,70 +448,23 @@
 
 <script src="js/api.js"></script>
 <script>
-// ─── MOCK DATA (used when backend not running) ───
-const MOCK_SCHEMES = [
-  { id:'SCH001', name:'PM Kisan Samman Nidhi', category:'agriculture', icon:'🌾',
-    tags:['Agriculture','All Categories','Farmers'],
-    description:'Direct income support of ₹6,000 per year in 3 equal instalments of ₹2,000 each to all landholding farmer families across India, directly to their bank accounts.',
-    benefit_amount:6000, benefit_period:'per year', last_date:'2026-05-31',
-    eligible_category:'All', max_income:250000, states:'All India',
-    ministry:'Ministry of Agriculture & Farmers Welfare',
-    required_documents:['Aadhaar Card','Land Record (Khatoni / Patta)','Bank Passbook with IFSC','Mobile Number linked to Aadhaar'],
-    official_url:'https://pmkisan.gov.in' },
-  { id:'SCH002', name:'National Scholarship Portal (SC/ST Post-Matric)', category:'education', icon:'🎓',
-    tags:['Education','SC / ST Students','Below ₹5L Income'],
-    description:'Post-matric scholarship for SC/ST students to support higher education and reduce dropout rates. Covers tuition fees, maintenance allowance and book grants.',
-    benefit_amount:48000, benefit_period:'per year', last_date:'2026-04-15',
-    eligible_category:'SC / ST', max_income:500000, states:'All India',
-    ministry:'Ministry of Social Justice & Empowerment',
-    required_documents:['Aadhaar Card','Caste Certificate','Income Certificate','Bonafide from Institution','Bank Passbook','Previous Year Marksheet'],
-    official_url:'https://scholarships.gov.in' },
-  { id:'SCH003', name:'Pradhan Mantri Awas Yojana – Gramin', category:'housing', icon:'🏠',
-    tags:['Housing','BPL Families','Rural'],
-    description:'Financial assistance for construction of pucca house — ₹1.2 lakh in plains and ₹1.3 lakh in hilly/north-eastern areas. Linked with MGNREGS for 90/95 person-days of unskilled labour.',
-    benefit_amount:120000, benefit_period:'one-time', last_date:'2026-06-30',
-    eligible_category:'All (BPL)', max_income:300000, states:'All India',
-    ministry:'Ministry of Rural Development',
-    required_documents:['Aadhaar Card','BPL/SECC List inclusion proof','Land ownership document','Bank Account (Jan Dhan preferred)','Geotagged photo of plot'],
-    official_url:'https://pmayg.nic.in' },
-  { id:'SCH004', name:'Ayushman Bharat – PM-JAY', category:'health', icon:'🏥',
-    tags:['Health','BPL/SECC families','All India'],
-    description:'World\'s largest health assurance scheme providing ₹5 lakh per family per year for secondary and tertiary care hospitalization at over 10,000 empanelled hospitals.',
-    benefit_amount:500000, benefit_period:'per year', last_date:'2026-04-08',
-    eligible_category:'All (SECC)', max_income:500000, states:'All India',
-    ministry:'Ministry of Health & Family Welfare',
-    required_documents:['Aadhaar Card','Ration Card','SECC/BPL list inclusion','Family photo'],
-    official_url:'https://pmjay.gov.in' },
-  { id:'SCH005', name:'Kanya Sumangala Yojana (UP)', category:'women', icon:'👧',
-    tags:['Women & Child','Girl Child','UP Residents'],
-    description:'Financial support in 6 stages from birth to graduation for girl children in UP to promote girls\' education and health, and discourage female foeticide.',
-    benefit_amount:15000, benefit_period:'per girl (6 instalments)', last_date:'2026-07-31',
-    eligible_category:'All', max_income:300000, states:'Uttar Pradesh',
-    ministry:'Dept. of Women & Child Dev., UP',
-    required_documents:['Aadhaar Card','Birth Certificate','Income Certificate','Bank Account (mother/girl)','School Enrollment Proof (for later stages)'],
-    official_url:'https://mksy.up.gov.in' },
-  { id:'SCH006', name:'PM SVANidhi – Street Vendor Loan', category:'finance', icon:'🛒',
-    tags:['Finance','Street Vendors','Self-Employed'],
-    description:'Working capital loan of ₹10,000 (first time), ₹20,000 (second), ₹50,000 (third) for street vendors to resume livelihoods. Subsidised interest and no collateral required.',
-    benefit_amount:10000, benefit_period:'loan (no collateral)', last_date:'2026-12-31',
-    eligible_category:'All (Street Vendors)', max_income:200000, states:'All India',
-    ministry:'Ministry of Housing & Urban Affairs',
-    required_documents:['Aadhaar Card','Vending Certificate / ULB letter','Bank Account','Vendor Photo'],
-    official_url:'https://pmsvanidhi.mohua.gov.in' },
-];
-
-let currentSchemes = [...MOCK_SCHEMES];
+let currentSchemes = [];
 let currentSchemeForModal = null;
 
 // ─── LOAD SCHEMES ───
 async function loadSchemes(params = {}) {
   try {
+    showLoading('Loading schemes...');
     const data = await SchemesAPI.list(params);
     currentSchemes = data.results || data;
-  } catch {
-    currentSchemes = MOCK_SCHEMES; // fallback
+    renderSchemes(currentSchemes);
+  } catch (err) {
+    console.error('Error loading schemes:', err);
+    showToast('Failed to load schemes', 'error');
+    currentSchemes = [];
+    renderSchemes([]);
   }
-  renderSchemes(currentSchemes);
+  hideLoading();
 }
 
 async function loadEligible() {
@@ -519,18 +472,18 @@ async function loadEligible() {
     showToast('Please login to see schemes matched to your profile', 'info');
     return;
   }
-  showLoading('Finding your eligible schemes...');
   try {
-    const data = await SchemesAPI.getEligible();
-    currentSchemes = data.results || data;
-    renderSchemes(currentSchemes);
-  } catch {
+    showLoading('Finding your eligible schemes...');
+    await loadSchemes({ eligible: true });
+    showToast(`Found ${currentSchemes.length} eligible schemes for you`, 'success');
+  } catch (err) {
+    console.error('Error loading eligible schemes:', err);
     showToast('Could not load eligible schemes', 'error');
   }
   hideLoading();
 }
 
-// ─── RENDER ───
+// ─── RENDER SCHEMES ───
 function renderSchemes(schemes) {
   const list = document.getElementById('schemes-list');
   document.getElementById('result-count').textContent = `Showing ${schemes.length} scheme${schemes.length !== 1 ? 's' : ''}`;
@@ -545,57 +498,169 @@ function renderSchemes(schemes) {
     const urgency = dl < 15 ? 'urgent' : dl < 45 ? 'expiring' : '';
     const dlClass = dl < 15 ? 'deadline-urgent' : dl < 45 ? 'deadline-soon' : 'deadline-ok';
     const dlText = dl < 0 ? '⛔ Expired' : dl < 15 ? `⚠ ${dl} days left` : `📅 ${formatDate(s.last_date)}`;
+    const applied = s.applied ? 'checked' : '';
+    const isExpired = dl < 0;
+    const applyDisabled = isExpired ? 'disabled' : '';
 
     return `
-    <div class="scheme-card ${urgency} animate-in" style="animation-delay:${i*0.06}s" onclick="openSchemeDetail('${s.id}')">
+    <div class="scheme-card ${urgency} animate-in" style="animation-delay:${i*0.06}s">
       <div>
-        <div class="scheme-name">${s.icon} ${s.name}</div>
+        <div class="scheme-name">${s.name}</div>
         <div class="scheme-tags-row">
-          ${(s.tags||[]).map(t => `<span class="tag tag-forest">${t}</span>`).join('')}
+          <span class="badge">${s.category}</span>
+          ${s.eligible_category !== 'all' ? `<span class="badge">${s.eligible_category}</span>` : ''}
         </div>
-        <div class="scheme-desc">${s.description}</div>
+        <div class="scheme-desc">${s.description || ''}</div>
         <div class="scheme-meta-row">
-          <span class="scheme-meta-item">🏛 ${s.ministry}</span>
-          <span class="scheme-meta-item">📄 ${(s.required_documents||[]).length} documents</span>
-          <span class="scheme-meta-item">📍 ${s.states}</span>
+          <div class="scheme-meta-item">🏛️ ${s.ministry || 'Ministry'}</div>
+          ${s.max_income ? `<div class="scheme-meta-item">💰 Up to ₹${formatCurrency(s.max_income)}</div>` : ''}
         </div>
       </div>
       <div class="scheme-right">
         <div class="benefit-block">
-          <div class="benefit-amount">${formatINR(s.benefit_amount)}</div>
-          <div class="benefit-period">${s.benefit_period}</div>
+          <div class="benefit-amount">₹${formatCurrency(s.benefit_amount || 0)}</div>
+          <div class="benefit-period">${s.benefit_period || 'per year'}</div>
         </div>
-        <span class="deadline-chip ${dlClass}">${dlText}</span>
-        <button class="scheme-apply-btn" onclick="event.stopPropagation();window.open('${s.official_url||'#'}','_blank')">Apply Now →</button>
+        <div class="deadline-chip ${dlClass}">${dlText}</div>
+        <div style="display:flex; gap:8px; width:100%;">
+          <button class="scheme-apply-btn" onclick="openSchemeDetail('${s.id}')">View</button>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <input type="checkbox" id="apply-${s.id}" ${applied} ${applyDisabled} onchange="toggleApply('${s.id}', this.checked)" style="width:18px; height:18px; cursor:pointer; ${isExpired ? 'opacity:0.5;' : ''}">
+            <label for="apply-${s.id}" style="cursor:pointer; font-size:12px; color:var(--mocha); ${isExpired ? 'opacity:0.5;' : ''}">${isExpired ? 'Expired' : 'Apply'}</label>
+          </div>
+        </div>
       </div>
     </div>`;
   }).join('');
 }
 
 // ─── SCHEME DETAIL MODAL ───
-function openSchemeDetail(id) {
-  const s = MOCK_SCHEMES.find(x => x.id === id) || currentSchemes.find(x => x.id == id);
-  if (!s) return;
-  currentSchemeForModal = s;
+async function openSchemeDetail(id) {
+  console.log('Opening scheme detail for id:', id);
+  try {
+    const scheme = await SchemesAPI.getDetail(id);
+    console.log('Fetched scheme:', scheme);
+    currentSchemeForModal = scheme;
+    showSchemeDetailModal(scheme);
+  } catch (err) {
+    console.error('Error loading scheme details:', err);
+    showToast('Failed to load scheme details', 'error');
+  }
+}
 
-  document.getElementById('modal-icon').textContent = s.icon;
+function showSchemeDetailModal(s) {
+  document.getElementById('modal-icon').textContent = '📋';
   document.getElementById('modal-title').textContent = s.name;
-  document.getElementById('modal-ministry').textContent = `🏛 ${s.ministry}`;
-  document.getElementById('modal-desc').textContent = s.description;
-  document.getElementById('modal-benefit').textContent = `${formatINR(s.benefit_amount)} ${s.benefit_period}`;
+  document.getElementById('modal-ministry').textContent = s.ministry || 'Ministry';
+  document.getElementById('modal-desc').textContent = s.description || '';
+  document.getElementById('modal-benefit').textContent = `₹${formatCurrency(s.benefit_amount || 0)} / ${s.benefit_period || 'per year'}`;
   document.getElementById('modal-deadline').textContent = formatDate(s.last_date);
-  document.getElementById('modal-category').textContent = s.eligible_category;
-  document.getElementById('modal-id').textContent = s.id;
-  document.getElementById('modal-income').textContent = s.max_income ? `Up to ${formatINR(s.max_income)}/year` : 'No limit';
-  document.getElementById('modal-states').textContent = s.states;
-  document.getElementById('modal-docs').innerHTML = (s.required_documents||[]).map(d => `<div class="doc-item">📄 ${d}</div>`).join('');
+  document.getElementById('modal-category').textContent = s.eligible_category || 'All';
+  document.getElementById('modal-id').textContent = `#${s.id}`;
+  document.getElementById('modal-income').textContent = s.max_income ? `Up to ₹${formatCurrency(s.max_income)}` : 'No limit';
+  document.getElementById('modal-states').textContent = s.eligible_state || 'All India';
+  const docs = (s.required_documents || []).map(d => `<div class="doc-item">✅ ${d}</div>`).join('');
+  document.getElementById('modal-docs').innerHTML = docs || '<div class="doc-item">No specific documents required</div>';
+  
+  // Show modal
+  document.getElementById('scheme-modal').style.display = 'flex';
+}
 
-  openModal('scheme-modal');
+function closeSchemeDetailModal() {
+  const modal = document.getElementById('scheme-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.style.display = 'none';
 }
 
 function applyNow() {
-  if (currentSchemeForModal?.official_url) window.open(currentSchemeForModal.official_url, '_blank');
-  else showToast('Visit official government website for application', 'info');
+  if (!Auth.isLoggedIn()) {
+    showToast('Please login to apply', 'info');
+    return;
+  }
+  if (currentSchemeForModal) {
+    toggleApplyFromModal(currentSchemeForModal.id);
+  }
+}
+
+async function toggleApplyFromModal(schemeId) {
+  if (!Auth.isLoggedIn()) {
+    showToast('Please login to apply to schemes', 'info');
+    return;
+  }
+  const currentState = currentSchemeForModal?.applied || false;
+  try {
+    await SchemesAPI.apply(schemeId, !currentState);
+    showToast(!currentState ? 'Scheme added to your applications' : 'Scheme removed from your applications', 'success');
+    // Update the scheme data
+    currentSchemeForModal = await SchemesAPI.getDetail(schemeId);
+    showSchemeDetailModal(currentSchemeForModal);
+  } catch (err) {
+    console.error('Error toggling apply:', err);
+    showToast('Failed to update scheme', 'error');
+  }
+}
+
+// ─── APPLY / UNAPPLY ───
+async function toggleApply(schemeId, applied) {
+  if (!Auth.isLoggedIn()) {
+    showToast('Please login to apply to schemes', 'info');
+    const checkbox = document.getElementById(`apply-${schemeId}`);
+    if (checkbox) checkbox.checked = false;
+    return;
+  }
+
+  try {
+    await SchemesAPI.apply(schemeId, applied);
+    showToast(applied ? 'Scheme added to your applications' : 'Scheme removed from your applications', 'success');
+    // Update eligible count if needed
+    updateEligibleBanner();
+  } catch (err) {
+    console.error('Error toggling apply:', err);
+    showToast('Failed to update scheme', 'error');
+    const checkbox = document.getElementById(`apply-${schemeId}`);
+    if (checkbox) checkbox.checked = !applied;
+  }
+}
+
+// ─── LOAD CATEGORY COUNTS ───
+async function loadCategoryCounts() {
+  try {
+    const counts = await SchemesAPI.getCategoryCounts();
+    console.log('Category counts:', counts);
+    Object.keys(counts).forEach(cat => {
+      const el = document.getElementById(`cat-${cat}`);
+      if (el) {
+        el.textContent = counts[cat];
+        console.log(`Updated cat-${cat} to ${counts[cat]}`);
+      } else {
+        console.log(`Element cat-${cat} not found`);
+      }
+    });
+  } catch (err) {
+    console.error('Error loading category counts:', err);
+  }
+}
+
+// ─── UPDATE ELIGIBLE BANNER ───
+async function updateEligibleBanner() {
+  try {
+    // Use categorized endpoint which contains the eligible.count for the logged-in user
+    const data = await SchemesAPI.getCategorized();
+    const eligibleCount = (data && data.eligible && data.eligible.count) ? data.eligible.count : 0;
+    const el = document.getElementById('eligible-count');
+    if (el) el.textContent = eligibleCount;
+    // Ensure banner visibility for logged-in users
+    if (Auth.isLoggedIn()) {
+      const banner = document.getElementById('eligible-banner');
+      if (banner) banner.style.display = 'flex';
+    }
+  } catch (err) {
+    console.error('Error updating eligible banner:', err);
+  }
 }
 
 // ─── FILTERS ───
@@ -607,10 +672,9 @@ function applyFilters() {
     state: document.getElementById('f-state').value,
     ordering: document.getElementById('sort-select').value,
   };
-  // Filter mock data locally
-  let filtered = MOCK_SCHEMES;
-  if (params.category) filtered = filtered.filter(s => s.category === params.category);
-  renderSchemes(filtered);
+  // Remove empty params
+  Object.keys(params).forEach(k => !params[k] && delete params[k]);
+  loadSchemes(params);
 }
 
 function filterByCategory(cat) {
@@ -627,14 +691,131 @@ function clearFilters() {
 }
 
 const debouncedSearch = debounce(q => {
-  const filtered = MOCK_SCHEMES.filter(s =>
-    s.name.toLowerCase().includes(q.toLowerCase()) ||
-    s.description.toLowerCase().includes(q.toLowerCase())
-  );
-  renderSchemes(filtered);
+  if (!q.trim()) {
+    loadSchemes();
+  } else {
+    loadSchemes({ search: q });
+  }
 }, 300);
 
+// ─── UTILITY FUNCTIONS ───
+function formatDate(dateStr) {
+  try {
+    return new Date(dateStr).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatCurrency(num) {
+  return new Intl.NumberFormat('en-IN').format(num);
+}
+
+function daysLeft(dateStr) {
+  try {
+    const deadline = new Date(dateStr);
+    const today = new Date();
+    return Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+  } catch {
+    return 999;
+  }
+}
+
+function debounce(func, delay) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+}
+
+function showLoading(msg) {
+  const loader = document.getElementById('loading-overlay');
+  if (loader) {
+    loader.textContent = msg || 'Loading...';
+    loader.style.display = 'flex';
+  }
+}
+
+function hideLoading() {
+  const loader = document.getElementById('loading-overlay');
+  if (loader) loader.style.display = 'none';
+}
+
+// ─── TOAST NOTIFICATIONS ───
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  
+  let bgColor = '#1976D2'; // info
+  let icon = 'ℹ️';
+  if (type === 'error') {
+    bgColor = '#C62828';
+    icon = '❌';
+  } else if (type === 'success') {
+    bgColor = '#2E7D32';
+    icon = '✓';
+  }
+  
+  toast.innerHTML = `
+    <div class="toast-icon">${icon}</div>
+    <div class="toast-msg">${msg}</div>
+  `;
+  toast.style.cssText = `
+    background: ${bgColor};
+    color: white;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    display: flex;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+  `;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('removing');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 // ─── INIT ───
+function updateNavbar() {
+  const user = Auth.getUser();
+  const navArea = document.getElementById('navbar-user-area');
+  const loginLink = document.getElementById('nav-login');
+  const signupLink = document.getElementById('nav-signup');
+  
+  if (!navArea) return;
+  
+  if (user) {
+    if (loginLink) loginLink.style.display = 'none';
+    if (signupLink) signupLink.style.display = 'none';
+    navArea.innerHTML = `
+      <div style="display:flex; align-items:center; gap:16px; padding-right:20px;">
+        <span style="font-size:14px; color:var(--charcoal);">${user.username}</span>
+        <a href="profile.html" style="padding:8px 16px; background:var(--deep-forest); color:white; border-radius:4px; text-decoration:none; font-size:13px;">👤 Profile</a>
+        <button onclick="logout()" style="padding:8px 16px; background:rgba(255,255,255,0.2); color:white; border:none; border-radius:4px; cursor:pointer; font-size:13px;">Logout</button>
+      </div>
+    `;
+  } else {
+    navArea.innerHTML = '';
+    if (loginLink) loginLink.style.display = 'block';
+    if (signupLink) signupLink.style.display = 'block';
+  }
+}
+
+async function logout() {
+  await AuthAPI.logout();
+  window.location.href = '/index.html';
+}
+
 updateNavbar();
 
 // Check URL params
@@ -643,11 +824,12 @@ const catParam = urlParams.get('cat');
 
 window.addEventListener('load', () => {
   loadSchemes();
+  loadCategoryCounts();
 
-  // Show eligible banner if logged in
+  // Show eligible banner & count if logged in
   if (Auth.isLoggedIn()) {
     document.getElementById('eligible-banner').style.display = 'flex';
-    document.getElementById('eligible-count').textContent = '12';
+    updateEligibleBanner();
   }
 
   if (catParam) {

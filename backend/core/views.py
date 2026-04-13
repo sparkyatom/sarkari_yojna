@@ -36,7 +36,7 @@ class IsAdminUser(IsAuthenticated):
 # STATS
 # ─────────────────────────────────────────
 class AdminStatsView(APIView):
-    permission_classes = []   # Public for homepage counters
+    permission_classes = [IsAdminUser]   # Public for homepage counters
 
     def get(self, request):
         today    = timezone.now().date()
@@ -168,12 +168,20 @@ class ExcelUploadView(APIView):
             success         = len(result['errors']) == 0,
         )
 
-        return Response({
+        status_code = status.HTTP_200_OK
+        if result['created'] == 0 and result['errors']:
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        response_data = {
             'message': f"Import complete: {result['created']} created, {result['skipped']} skipped.",
             'created': result['created'],
             'skipped': result['skipped'],
             'errors':  result['errors'],
-        }, status=status.HTTP_200_OK)
+        }
+        if status_code != status.HTTP_200_OK:
+            response_data['detail'] = 'Upload failed. See errors for details.'
+
+        return Response(response_data, status=status_code)
 
 
 # ─────────────────────────────────────────

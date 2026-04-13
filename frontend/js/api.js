@@ -137,6 +137,21 @@ const SchemesAPI = {
   },
   async search(query) {
     return apiFetch(`/schemes/?search=${encodeURIComponent(query)}`);
+  },
+  async apply(schemeId, applied) {
+    return apiFetch('/schemes/apply/', {
+      method: 'POST',
+      body: { scheme_id: schemeId, applied: applied }
+    });
+  },
+  async getApplied() {
+    return apiFetch('/schemes/applied/');
+  },
+  async getCategorized() {
+    return apiFetch('/schemes/categorized/');
+  },
+  async getCategoryCounts() {
+    return apiFetch('/schemes/category-counts/');
   }
 };
 
@@ -181,16 +196,56 @@ const AdminAPI = {
 // ═══════════════════════════════════
 
 // Update navbar based on auth state
+// function updateNavbar() {
+//   const user = Auth.getUser();
+//   const userArea = document.getElementById('navbar-user-area');
+//   if (!userArea) return;
+//   if (user) {
+//     const initials = (user.full_name || user.username || 'U')[0].toUpperCase();
+//     userArea.innerHTML = `
+//       <div class="navbar-user">
+//         <span>${user.full_name || user.username}</span>
+//         <div class="navbar-avatar" onclick="handleLogout()">${initials}</div>
+//       </div>`;
+//   } else {
+//     userArea.innerHTML = `
+//       <div style="display:flex;gap:8px;">
+//         <a href="login.html" class="btn btn-ghost btn-sm">Login</a>
+//         <a href="signup.html" class="btn btn-primary btn-sm">Sign Up</a>
+//       </div>`;
+//   }
+// }
+
 function updateNavbar() {
   const user = Auth.getUser();
   const userArea = document.getElementById('navbar-user-area');
+  const navLinks = document.querySelector('.navbar-links');
+
   if (!userArea) return;
+
+  // 🟢 HANDLE NAV LINKS (NEW — SAFE ADDITION)
+  if (navLinks) {
+    let links = `
+      <li><a href="index.html">🏠 Home</a></li>
+      <li><a href="schemes.html">📋 Schemes</a></li>
+    `;
+
+    // ✅ Only admin sees admin panel
+    if (user && user.is_admin) {
+      links += `<li><a href="admin-panel.html">⚙️ Admin</a></li>`;
+    }
+
+    navLinks.innerHTML = links;
+  }
+
+  // 🟢 KEEP ORIGINAL USER AREA LOGIC (UNCHANGED STYLE)
   if (user) {
-    const initials = (user.name || user.username || 'U')[0].toUpperCase();
+    const initials = (user.full_name || user.username || 'U')[0].toUpperCase();
+
     userArea.innerHTML = `
       <div class="navbar-user">
-        <span>${user.name || user.username}</span>
-        <div class="navbar-avatar" onclick="handleLogout()">${initials}</div>
+        <span>${user.full_name || user.username}</span>
+        <button onclick="handleLogout()" class="btn btn-outline btn-sm">Logout</button>
       </div>`;
   } else {
     userArea.innerHTML = `

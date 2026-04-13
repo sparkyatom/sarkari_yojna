@@ -112,3 +112,24 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
             return int(val)
         except ValueError:
             return None
+
+# ─── NEW: Track user scheme applications ───
+class UserSchemeStatus(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='scheme_status')
+    scheme = models.ForeignKey(
+        'schemes.Scheme',
+        on_delete=models.CASCADE,
+        related_name='application_statuses',
+        null=True,
+        blank=True,
+    )
+    applied = models.BooleanField(default=False)
+    applied_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'scheme')
+        db_table = 'user_scheme_status'
+
+    def __str__(self):
+        scheme_label = self.scheme.id if self.scheme else 'None'
+        return f"{self.user.username} - Scheme {scheme_label} - Applied: {self.applied}"

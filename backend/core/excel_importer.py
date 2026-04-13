@@ -45,6 +45,15 @@ COLUMN_MAP = {
     'icon':                 'icon',
 }
 
+VALID_CHOICES = {
+    'category': [c[0] for c in Scheme.CATEGORY_CHOICES],
+    'status': [c[0] for c in Scheme.STATUS_CHOICES],
+    'benefit_period': [c[0] for c in Scheme.PERIOD_CHOICES],
+    'eligible_gender': [c[0] for c in Scheme.GENDER_CHOICES],
+    'eligible_category': [c[0] for c in Scheme.ELIGIBLE_CAT_CHOICES],
+    'eligible_occupation': [c[0] for c in Scheme.OCCUPATION_CHOICES],
+}
+
 
 def parse_date(val):
     if not val:
@@ -66,6 +75,99 @@ def parse_int(val, default=0):
         return default
 
 
+def normalize_text(val):
+    if not val:
+        return ''
+    text = str(val).strip().lower()
+    text = text.replace('&', ' and ')
+    text = text.replace('-', ' ')
+    text = text.replace('_', ' ')
+    text = text.replace(',', ' ')
+    return ' '.join(text.split())
+
+
+def normalize_category(val):
+    raw = normalize_text(val)
+    if raw in VALID_CHOICES['category']:
+        return raw
+    mapping = {
+        'women and child': 'women',
+        'women child': 'women',
+        'social security': 'social',
+        'finance and loans': 'finance',
+        'finance loans': 'finance',
+    }
+    return mapping.get(raw, '')
+
+
+def normalize_eligible_category(val):
+    raw = normalize_text(val)
+    if not raw:
+        return ''
+    if raw == 'all' or ' all ' in f' {raw} ':
+        return 'all'
+    if 'sc' in raw and 'st' in raw and 'obc' in raw:
+        return 'sc_st_obc'
+    if 'sc' in raw and 'st' in raw:
+        return 'sc_st'
+    if 'sc' in raw:
+        return 'sc'
+    if 'st' in raw:
+        return 'st'
+    if 'obc' in raw:
+        return 'obc'
+    if 'general' in raw:
+        return 'general'
+    return ''
+
+
+def normalize_eligible_occupation(val):
+    raw = normalize_text(val)
+    if raw in VALID_CHOICES['eligible_occupation']:
+        return raw
+    if 'student' in raw:
+        return 'student'
+    if 'farmer' in raw:
+        return 'farmer'
+    if 'self' in raw:
+        return 'self_employed'
+    if 'daily' in raw or 'wage' in raw or 'labor' in raw or 'labour' in raw:
+        return 'labour'
+    if 'teacher' in raw:
+        return 'teacher'
+    if 'business' in raw:
+        return 'business'
+    if 'unemployed' in raw or 'artisan' in raw:
+        return 'other'
+    return ''
+
+
+def normalize_benefit_period(val):
+    raw = normalize_text(val)
+    if raw in VALID_CHOICES['benefit_period']:
+        return raw
+    if 'season' in raw:
+        return 'per_year'
+    if 'month' in raw:
+        return 'per_month'
+    if 'year' in raw:
+        return 'per_year'
+    if 'one' in raw:
+        return 'one_time'
+    if 'install' in raw:
+        return 'per_installment'
+    return ''
+
+
+def normalize_eligible_state(val):
+    raw = normalize_text(val)
+    if not raw:
+        return 'all'
+    if raw in {'all', 'all states', 'all state', 'all_states'}:
+        return 'all'
+    return raw
+
+
 def import_from_excel(file_obj):
     """
     file_obj: InMemoryUploadedFile (.xlsx or .xls)
@@ -75,7 +177,7 @@ def import_from_excel(file_obj):
     ws = wb.active
 
     rows       = list(ws.iter_rows(values_only=True))
-    headers    = [str(h).strip().lower() if h else '' for h in rows[0]]
+    headers    = [str(h).replace(' ', '_').replace('-', '_').strip().lower() if h else '' for h in rows[0]]
     data_rows  = rows[1:]
 
     return _process_rows(headers, data_rows)
@@ -89,7 +191,7 @@ def import_from_csv(file_obj):
     content = file_obj.read().decode('utf-8-sig')
     reader  = csv.reader(io.StringIO(content))
     rows    = list(reader)
-    headers    = [h.strip().lower() for h in rows[0]]
+    headers    = [h.replace(' ', '_').replace('-', '_').strip().lower() for h in rows[0]]
     data_rows  = [tuple(r) for r in rows[1:]]
 
     return _process_rows(headers, data_rows)
@@ -124,11 +226,13 @@ def _process_rows(headers, data_rows):
 
         name = str(get('name', '')).strip()
         if not name:
+            errors.append(f"Row {row_num}: Missing scheme name")
             skipped += 1
             continue
 
         # Skip if already exists
         if Scheme.objects.filter(name=name).exists():
+            errors.append(f"Row {row_num}: Scheme '{name}' already exists")
             skipped += 1
             continue
 
@@ -140,15 +244,51 @@ def _process_rows(headers, data_rows):
 
         benefit_amount = parse_int(get('benefit_amount'))
         if not benefit_amount:
-            errors.append(f"Row {row_num}: Invalid benefit_amount for '{name}'")
+            errors.append(f"Row {row_num}: Invalid benefit_amount '{get('benefit_amount')}' for '{name}'")
             skipped += 1
             continue
 
         # Validate category
-        category = str(get('category', 'agriculture')).strip().lower()
-        valid_cats = [c[0] for c in Scheme.CATEGORY_CHOICES]
-        if category not in valid_cats:
-            category = 'agriculture'
+        category = normalize_category(get('category'))
+        if not category:
+            errors.append(f"Row {row_num}: Invalid category '{get('category')}' for '{name}'")
+            skipped += 1
+            continue
+
+        # Validate status
+        status = normalize_text(get('status', 'active')) or 'active'
+        if status not in VALID_CHOICES['status']:
+            errors.append(f"Row {row_num}: Invalid status '{get('status')}' for '{name}'")
+            skipped += 1
+            continue
+
+        # Validate benefit_period
+        benefit_period = normalize_benefit_period(get('benefit_period', 'per_year')) or 'per_year'
+        if benefit_period not in VALID_CHOICES['benefit_period']:
+            errors.append(f"Row {row_num}: Invalid benefit_period '{get('benefit_period')}' for '{name}'")
+            skipped += 1
+            continue
+
+        # Validate eligible_gender
+        eligible_gender = normalize_text(get('eligible_gender', 'all')) or 'all'
+        if eligible_gender not in VALID_CHOICES['eligible_gender']:
+            errors.append(f"Row {row_num}: Invalid eligible_gender '{get('eligible_gender')}' for '{name}'")
+            skipped += 1
+            continue
+
+        # Validate eligible_category
+        eligible_category = normalize_eligible_category(get('eligible_category', 'all')) or 'all'
+        if eligible_category not in VALID_CHOICES['eligible_category']:
+            errors.append(f"Row {row_num}: Invalid eligible_category '{get('eligible_category')}' for '{name}'")
+            skipped += 1
+            continue
+
+        # Validate eligible_occupation
+        eligible_occupation = normalize_eligible_occupation(get('eligible_occupation', 'all')) or 'all'
+        if eligible_occupation not in VALID_CHOICES['eligible_occupation']:
+            errors.append(f"Row {row_num}: Invalid eligible_occupation '{get('eligible_occupation')}' for '{name}'")
+            skipped += 1
+            continue
 
         # Build documents list
         docs_raw = str(get('required_documents', ''))
@@ -159,17 +299,17 @@ def _process_rows(headers, data_rows):
             ministry           = str(get('ministry', 'Government of India')).strip(),
             category           = category,
             description        = str(get('description', '')).strip(),
-            eligible_category  = str(get('eligible_category', 'all')).strip().lower() or 'all',
-            eligible_occupation= str(get('eligible_occupation', 'all')).strip().lower() or 'all',
-            eligible_gender    = str(get('eligible_gender', 'all')).strip().lower() or 'all',
-            eligible_state     = str(get('eligible_state', 'all')).strip().lower() or 'all',
+            eligible_category  = eligible_category,
+            eligible_occupation= eligible_occupation,
+            eligible_gender    = eligible_gender,
+            eligible_state     = normalize_eligible_state(get('eligible_state', 'all')), 
             min_income         = parse_int(get('min_income'), 0),
             max_income         = parse_int(get('max_income')) or None,
             benefit_amount     = benefit_amount,
-            benefit_period     = str(get('benefit_period', 'per_year')).strip().lower() or 'per_year',
+            benefit_period     = benefit_period,
             last_date          = last_date,
             official_url       = str(get('official_url', '')).strip() or None,
-            status             = str(get('status', 'active')).strip().lower() or 'active',
+            status             = status,
             icon               = str(get('icon', '📋')).strip() or '📋',
             required_documents = '\n'.join(docs),
         )
