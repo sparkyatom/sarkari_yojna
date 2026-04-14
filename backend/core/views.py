@@ -36,22 +36,22 @@ class IsAdminUser(IsAuthenticated):
 # STATS
 # ─────────────────────────────────────────
 class AdminStatsView(APIView):
-    permission_classes = [IsAdminUser]   # Public for homepage counters
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
-        today    = timezone.now().date()
-        in_30d   = today + timedelta(days=30)   # FIX: was timezone.timedelta (doesn't exist)
-        total    = Scheme.objects.filter(status='active').count()
-        expiring = Scheme.objects.filter(status='active', last_date__range=[today, in_30d]).count()
-        users    = User.objects.filter(is_active=True).count()
+        today = timezone.now().date()
+        in_30d = today + timedelta(days=30)
+
+        total_schemes = Scheme.objects.count()
+        active_schemes = Scheme.objects.filter(status='active').count()
+        expiring = Scheme.objects.filter(last_date__gte=today, last_date__lte=in_30d).count()
+        users = User.objects.filter(is_active=True).count()
 
         return Response({
-            'total_schemes': total,
-            'active':        total,
-            'expiring':      expiring,
-            'users':         users,
-            'states':        36,
-            'matches':       total * users,
+            'total_schemes': total_schemes,
+            'active_schemes': active_schemes,
+            'users': users,
+            'expiring': expiring,
         })
 
 

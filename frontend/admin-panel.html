@@ -751,58 +751,35 @@ function showPage(id, el) {
 
 // ─── LOAD DASHBOARD DATA ───
 async function loadDashboard() {
-  // Load dashboard stats from backend. If the admin stats endpoint fails,
-  // compute sensible values by querying schemes and users endpoints.
-  let stats = { total: 0, active: 0, users: 0, expiring: 0, added_month: null, updated_today: null };
-
+  // Fetch dashboard stats from single backend API (do not compute client-side)
   try {
     const d = await AdminAPI.getStats();
-    if (d && typeof d === 'object') {
-      stats.total = Number(d.total ?? d.schemes_count ?? stats.total) || stats.total;
-      stats.active = Number(d.active ?? d.active_schemes ?? stats.active) || stats.active;
-      stats.users = Number(d.users ?? d.registered_users ?? stats.users) || stats.users;
-      stats.expiring = Number(d.expiring ?? d.expiring_30d ?? stats.expiring) || stats.expiring;
-      stats.added_month = d.added_month ?? d.added_this_month ?? null;
-      stats.updated_today = d.updated_today ?? null;
-    }
+    const total = Number(d.total_schemes || 0);
+    const active = Number(d.active_schemes || 0);
+    const users = Number(d.users || 0);
+    const expiring = Number(d.expiring || 0);
+
+    // Update existing KPI elements
+    animateCounter(document.getElementById('kpi-total'), total);
+    animateCounter(document.getElementById('kpi-active'), active);
+    animateCounter(document.getElementById('kpi-users'), users);
+    document.getElementById('kpi-expiring').textContent = expiring;
+
+    // Also update requested IDs if present (safe no-op otherwise)
+    const elMap = [
+      ['total-schemes', total],
+      ['active-schemes', active],
+      ['users-count', users],
+      ['expiring-count', expiring]
+    ];
+    elMap.forEach(([id, val]) => {
+      const e = document.getElementById(id);
+      if (e) e.textContent = val;
+    });
   } catch (err) {
-    // Fallback: compute from schemes and users endpoints
-    try {
-      const schemesData = await SchemesAPI.list();
-      const schemes = Array.isArray(schemesData) ? schemesData : (schemesData.results || []);
-      stats.total = schemes.length;
-      stats.active = schemes.filter(s => (s.status || '').toLowerCase() === 'active').length;
-      const now = new Date();
-      stats.expiring = schemes.filter(s => {
-        try {
-          if (!s.last_date) return false;
-          const d = new Date(s.last_date);
-          const diff = (d - now) / 86400000;
-          return diff >= 0 && diff <= 30;
-        } catch { return false; }
-      }).length;
-    } catch (e) { console.warn('Failed to compute scheme stats', e); }
-
-    try {
-      const usersData = await AdminAPI.listUsers();
-      const users = Array.isArray(usersData) ? usersData : (usersData.results || []);
-      stats.users = users.length;
-    } catch (e) { console.warn('Failed to compute user stats', e); }
+    console.error('Failed to load admin stats', err);
+    showToast('Failed to load dashboard stats','error');
   }
-
-  // Render KPIs using real values
-  animateCounter(document.getElementById('kpi-total'), Number(stats.total || 0));
-  animateCounter(document.getElementById('kpi-active'), Number(stats.active || 0));
-  animateCounter(document.getElementById('kpi-users'), Number(stats.users || 0));
-  document.getElementById('kpi-expiring').textContent = Number(stats.expiring || 0);
-
-  // Update small change lines if backend provided them, otherwise clear
-  const primaryChange = document.querySelector('.kpi-card.kpi-primary .kpi-change');
-  const activeChange = document.querySelector('.kpi-card.kpi-forest .kpi-change');
-  const usersChange = document.querySelector('.kpi-card.kpi-gold .kpi-change');
-  if (primaryChange) primaryChange.textContent = stats.added_month ? `↑ ${stats.added_month} added this month` : '';
-  if (activeChange) activeChange.textContent = stats.updated_today ? `↑ ${stats.updated_today} updated today` : '';
-  if (usersChange) usersChange.textContent = '';
 
   // Dashboard table is populated by loadSchemes()
 }
