@@ -480,38 +480,7 @@
           <span class="small muted">Last 10 uploads</span>
         </div>
         <div id="upload-history">
-          <div class="upload-history-item">
-            <div class="upload-file-icon">📊</div>
-            <div style="flex:1;">
-              <div class="upload-file-name">schemes_march_2026.xlsx</div>
-              <div class="upload-file-meta">48 schemes imported · 18 Mar 2026 · by Admin</div>
-            </div>
-            <span class="status-pill status-active">✓ Processed</span>
-          </div>
-          <div class="upload-history-item">
-            <div class="upload-file-icon">📄</div>
-            <div style="flex:1;">
-              <div class="upload-file-name">central_schemes_q1.json</div>
-              <div class="upload-file-meta">32 schemes imported · 05 Mar 2026 · by Admin</div>
-            </div>
-            <span class="status-pill status-active">✓ Processed</span>
-          </div>
-          <div class="upload-history-item">
-            <div class="upload-file-icon">📊</div>
-            <div style="flex:1;">
-              <div class="upload-file-name">housing_schemes_feb.csv</div>
-              <div class="upload-file-meta">12 schemes imported · 22 Feb 2026 · by Admin</div>
-            </div>
-            <span class="status-pill status-active">✓ Processed</span>
-          </div>
-          <div class="upload-history-item">
-            <div class="upload-file-icon">📄</div>
-            <div style="flex:1;">
-              <div class="upload-file-name">education_schemes.json</div>
-              <div class="upload-file-meta">5 schemes failed (invalid format) · 10 Feb 2026 · by Admin</div>
-            </div>
-            <span class="status-pill status-expired">✗ Failed</span>
-          </div>
+          <!-- Upload history will be populated from the API -->
         </div>
       </div>
     </div>
@@ -679,7 +648,7 @@
       </div>
       <div class="table-card">
         <div class="table-card-header">
-          <h3>Registered Users (<span id="user-count">4</span>)</h3>
+          <h3>Registered Users (<span id="user-count">—</span>)</h3>
           <div class="table-search">
             <span>🔍</span>
             <input type="text" placeholder="Search users..." oninput="filterTable(this.value,'users-table')">
@@ -704,25 +673,25 @@
       </div>
       <div class="kpi-grid">
         <div class="kpi-card kpi-primary">
-          <div class="kpi-label">Total Matches Made</div>
-          <div class="kpi-val">14,392</div>
-          <div class="kpi-change up">↑ 23% this month</div>
-        </div>
-        <div class="kpi-card kpi-forest">
-          <div class="kpi-label">Most Viewed Scheme</div>
-          <div class="kpi-val" style="font-size:16px;margin-top:4px;">PM-KISAN</div>
-          <div class="kpi-change up">847 views this week</div>
-        </div>
-        <div class="kpi-card kpi-gold">
-          <div class="kpi-label">Top Category</div>
-          <div class="kpi-val" style="font-size:16px;margin-top:4px;">Agriculture</div>
-          <div class="kpi-change up">38% of all queries</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Avg Schemes / User</div>
-          <div class="kpi-val">7.8</div>
-          <div class="kpi-change up">↑ 1.2 vs last month</div>
-        </div>
+            <div class="kpi-label">Total Matches Made</div>
+            <div class="kpi-val">—</div>
+            <div class="kpi-change up">&nbsp;</div>
+          </div>
+          <div class="kpi-card kpi-forest">
+            <div class="kpi-label">Most Viewed Scheme</div>
+            <div class="kpi-val" style="font-size:16px;margin-top:4px;">—</div>
+            <div class="kpi-change up">&nbsp;</div>
+          </div>
+          <div class="kpi-card kpi-gold">
+            <div class="kpi-label">Top Category</div>
+            <div class="kpi-val" style="font-size:16px;margin-top:4px;">—</div>
+            <div class="kpi-change up">&nbsp;</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Avg Schemes / User</div>
+            <div class="kpi-val">—</div>
+            <div class="kpi-change up">&nbsp;</div>
+          </div>
       </div>
       <div class="table-card" style="padding:32px;text-align:center;">
         <div style="font-size:36px;margin-bottom:16px;">📈</div>
@@ -755,6 +724,7 @@
 
 <script src="js/api.js"></script>
 // 🚨 BLOCK NON-ADMIN ACCESS
+<script>
 (function () {
   const user = JSON.parse(localStorage.getItem('sy_user'));
 
@@ -763,23 +733,13 @@
     window.location.href = "index.html";
   }
 })();
-<script>
-// ─── MOCK DATA ───
-const MOCK_ADMIN_SCHEMES = [
-  { id:'SCH001', name:'PM Kisan Samman Nidhi', category:'Agriculture', eligible_cat:'All', benefit:'₹6,000', deadline:'2026-05-31', status:'active' },
-  { id:'SCH002', name:'National Scholarship Portal SC/ST', category:'Education', eligible_cat:'SC/ST', benefit:'₹48,000', deadline:'2026-04-15', status:'active' },
-  { id:'SCH003', name:'PM Awas Yojana – Gramin', category:'Housing', eligible_cat:'BPL All', benefit:'₹1,20,000', deadline:'2026-06-30', status:'active' },
-  { id:'SCH004', name:'Ayushman Bharat PM-JAY', category:'Health', eligible_cat:'SECC All', benefit:'₹5,00,000', deadline:'2026-04-08', status:'active' },
-  { id:'SCH005', name:'Kanya Sumangala Yojana', category:'Women & Child', eligible_cat:'All (UP)', benefit:'₹15,000', deadline:'2026-07-31', status:'active' },
-  { id:'SCH006', name:'PM SVANidhi Street Vendor', category:'Finance', eligible_cat:'Vendors', benefit:'₹10,000', deadline:'2026-12-31', status:'draft' },
-];
+</script>
 
-const MOCK_USERS = [
-  { name:'Ramesh Kumar', category:'OBC', occupation:'Farmer', state:'Andhra Pradesh', income:'₹1.2L', matched:12, joined:'15 Mar 2026' },
-  { name:'Sunita Devi', category:'SC', occupation:'Labour', state:'Telangana', income:'₹80K', matched:18, joined:'14 Mar 2026' },
-  { name:'Arjun Singh', category:'General', occupation:'Student', state:'Karnataka', income:'₹3.5L', matched:7, joined:'12 Mar 2026' },
-  { name:'Meena Kumari', category:'ST', occupation:'Self-Employed', state:'Tamil Nadu', income:'₹2.1L', matched:15, joined:'10 Mar 2026' },
-];
+<script>
+// No static/mock data — load schemes and users from real API
+
+// Full dataset cached in frontend (do not re-fetch on filter)
+let allSchemes = [];
 
 // ─── PAGE NAVIGATION ───
 function showPage(id, el) {
@@ -791,37 +751,83 @@ function showPage(id, el) {
 
 // ─── LOAD DASHBOARD DATA ───
 async function loadDashboard() {
-  let stats = { total:312, active:284, users:1847, expiring:7 };
-  try { const d = await AdminAPI.getStats(); stats = {...stats,...d}; } catch {}
+  // Load dashboard stats from backend. If the admin stats endpoint fails,
+  // compute sensible values by querying schemes and users endpoints.
+  let stats = { total: 0, active: 0, users: 0, expiring: 0, added_month: null, updated_today: null };
 
-  animateCounter(document.getElementById('kpi-total'), stats.total);
-  animateCounter(document.getElementById('kpi-active'), stats.active);
-  animateCounter(document.getElementById('kpi-users'), stats.users);
-  document.getElementById('kpi-expiring').textContent = stats.expiring;
+  try {
+    const d = await AdminAPI.getStats();
+    if (d && typeof d === 'object') {
+      stats.total = Number(d.total ?? d.schemes_count ?? stats.total) || stats.total;
+      stats.active = Number(d.active ?? d.active_schemes ?? stats.active) || stats.active;
+      stats.users = Number(d.users ?? d.registered_users ?? stats.users) || stats.users;
+      stats.expiring = Number(d.expiring ?? d.expiring_30d ?? stats.expiring) || stats.expiring;
+      stats.added_month = d.added_month ?? d.added_this_month ?? null;
+      stats.updated_today = d.updated_today ?? null;
+    }
+  } catch (err) {
+    // Fallback: compute from schemes and users endpoints
+    try {
+      const schemesData = await SchemesAPI.list();
+      const schemes = Array.isArray(schemesData) ? schemesData : (schemesData.results || []);
+      stats.total = schemes.length;
+      stats.active = schemes.filter(s => (s.status || '').toLowerCase() === 'active').length;
+      const now = new Date();
+      stats.expiring = schemes.filter(s => {
+        try {
+          if (!s.last_date) return false;
+          const d = new Date(s.last_date);
+          const diff = (d - now) / 86400000;
+          return diff >= 0 && diff <= 30;
+        } catch { return false; }
+      }).length;
+    } catch (e) { console.warn('Failed to compute scheme stats', e); }
 
-  // Render dashboard table
-  renderSchemesTable('dashboard-table', MOCK_ADMIN_SCHEMES.slice(0,5), false);
+    try {
+      const usersData = await AdminAPI.listUsers();
+      const users = Array.isArray(usersData) ? usersData : (usersData.results || []);
+      stats.users = users.length;
+    } catch (e) { console.warn('Failed to compute user stats', e); }
+  }
+
+  // Render KPIs using real values
+  animateCounter(document.getElementById('kpi-total'), Number(stats.total || 0));
+  animateCounter(document.getElementById('kpi-active'), Number(stats.active || 0));
+  animateCounter(document.getElementById('kpi-users'), Number(stats.users || 0));
+  document.getElementById('kpi-expiring').textContent = Number(stats.expiring || 0);
+
+  // Update small change lines if backend provided them, otherwise clear
+  const primaryChange = document.querySelector('.kpi-card.kpi-primary .kpi-change');
+  const activeChange = document.querySelector('.kpi-card.kpi-forest .kpi-change');
+  const usersChange = document.querySelector('.kpi-card.kpi-gold .kpi-change');
+  if (primaryChange) primaryChange.textContent = stats.added_month ? `↑ ${stats.added_month} added this month` : '';
+  if (activeChange) activeChange.textContent = stats.updated_today ? `↑ ${stats.updated_today} updated today` : '';
+  if (usersChange) usersChange.textContent = '';
+
+  // Dashboard table is populated by loadSchemes()
 }
 
 function renderSchemesTable(tbodyId, schemes, showAll = true) {
   const tbody = document.getElementById(tbodyId);
   if (!tbody) return;
   tbody.innerHTML = schemes.map(s => {
-    const dl = new Date(s.deadline).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
+    const idVal = s.id || s.pk || s.pk_id || '';
+    const dl = s.last_date ? formatDate(s.last_date) : (s.last_date === null ? '—' : (s.deadline ? formatDate(s.deadline) : '—'));
     const statusClass = s.status === 'active' ? 'status-active' : s.status === 'draft' ? 'status-draft' : 'status-expired';
-    const idCol = showAll ? `<td class="mono" style="font-size:11px;color:var(--mocha);">${s.id}</td>` : '';
-    const eligCol = showAll ? `<td>${s.eligible_cat}</td>` : '';
+    const idCol = showAll ? `<td class="mono" style="font-size:11px;color:var(--mocha);">${idVal}</td>` : '';
+    const eligCol = showAll ? `<td>${s.eligible_category || s.eligible_cat || '—'}</td>` : '';
+    const benefit = typeof s.benefit_amount === 'number' ? formatINR(s.benefit_amount) : (s.benefit_amount || s.benefit || '—');
     return `<tr>
       ${idCol}
       <td><strong>${s.name}</strong></td>
-      <td>${s.category}</td>
+      <td>${s.category || '—'}</td>
       ${eligCol}
-      <td style="color:var(--terracotta);font-weight:600;">${s.benefit}</td>
+      <td style="color:var(--terracotta);font-weight:600;">${benefit}</td>
       <td>${dl}</td>
-      <td><span class="status-pill ${statusClass}">${s.status}</span></td>
+      <td><span class="status-pill ${statusClass}">${s.status || '—'}</span></td>
       <td><div class="action-btns">
-        <button class="tbl-btn tbl-btn-edit" onclick="editScheme('${s.id}')">Edit</button>
-        <button class="tbl-btn tbl-btn-del" onclick="deleteScheme('${s.id}','${s.name}')">Delete</button>
+        <button class="tbl-btn tbl-btn-edit" onclick="editScheme('${idVal}')">Edit</button>
+        <button class="tbl-btn tbl-btn-del" onclick="deleteScheme('${idVal}','${(s.name||'')}' )">Delete</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -829,21 +835,68 @@ function renderSchemesTable(tbodyId, schemes, showAll = true) {
   if (showAll) document.getElementById('scheme-total-count').textContent = schemes.length;
 }
 
-function renderUsersTable() {
+async function renderUsersTable() {
   const tbody = document.getElementById('users-table');
-  tbody.innerHTML = MOCK_USERS.map(u => `<tr>
-    <td><strong>${u.name}</strong></td>
-    <td><span class="tag tag-mocha">${u.category}</span></td>
-    <td>${u.occupation}</td>
-    <td>${u.state}</td>
-    <td>${u.income}/yr</td>
-    <td><span class="tag tag-forest">${u.matched} schemes</span></td>
-    <td>${u.joined}</td>
-    <td><div class="action-btns">
-      <button class="tbl-btn tbl-btn-view" onclick="showToast('📋 Viewing user profile...','info')">View</button>
-    </div></td>
-  </tr>`).join('');
+  if (!tbody) return;
+  try {
+    const data = await AdminAPI.listUsers();
+    const users = Array.isArray(data) ? data : (data.results || []);
+    document.getElementById('user-count').textContent = users.length;
+    tbody.innerHTML = users.map(u => `<tr>
+      <td><strong>${u.full_name || u.username || u.name || '—'}</strong></td>
+      <td><span class="tag tag-mocha">${u.category || u.caste || '—'}</span></td>
+      <td>${u.occupation || '—'}</td>
+      <td>${u.state || '—'}</td>
+      <td>${u.income_range || u.income || '—'}</td>
+      <td><span class="tag tag-forest">${u.matched_schemes || u.matched || 0} schemes</span></td>
+      <td>${u.joined || formatDate(u.date_joined || u.joined_at || new Date())}</td>
+      <td><div class="action-btns">
+        <button class="tbl-btn tbl-btn-view" onclick="showToast('📋 Viewing user profile...','info')">View</button>
+      </div></td>
+    </tr>`).join('');
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="8">Failed to load users</td></tr>';
+  }
 }
+
+// ─── LOAD SCHEMES FROM API ───
+async function loadSchemes() {
+  try {
+    const data = await SchemesAPI.list();
+    const schemes = Array.isArray(data) ? data : (data.results || []);
+    // cache full dataset for client-side filtering
+    allSchemes = schemes;
+    // populate dashboard (first 5) and manage table (all)
+    renderSchemesTable('dashboard-table', schemes.slice(0,5), false);
+    renderSchemesTable('manage-table', schemes, true);
+    document.getElementById('scheme-total-count').textContent = schemes.length;
+  } catch (err) {
+    console.error('Failed to load schemes', err);
+    const dash = document.getElementById('dashboard-table');
+    const manage = document.getElementById('manage-table');
+    if (dash) dash.innerHTML = '<tr><td colspan="6">Failed to load schemes</td></tr>';
+    if (manage) manage.innerHTML = '<tr><td colspan="8">Failed to load schemes</td></tr>';
+    showToast('Failed to load schemes from API','error');
+  }
+}
+
+// Apply client-side category filter to `manage-table` using cached `allSchemes`
+function applyFilter() {
+  const sel = document.getElementById('manage-filter-cat');
+  if (!sel) return;
+  const selected = sel.value; // exact match required
+  let filtered = allSchemes;
+  if (selected && selected !== '') {
+    filtered = allSchemes.filter(s => s.category === selected);
+  }
+  renderSchemesTable('manage-table', filtered, true);
+  document.getElementById('scheme-total-count').textContent = filtered.length;
+}
+
+// Attach event listener to category dropdown
+const manageFilterEl = document.getElementById('manage-filter-cat');
+if (manageFilterEl) manageFilterEl.addEventListener('change', applyFilter);
 
 // ─── TABLE SEARCH ───
 function filterTable(query, tbodyId) {
@@ -1008,11 +1061,40 @@ function exportUsers() {
   showToast('⬇ Users CSV exported','success');
 }
 
+// ─── UPLOAD HISTORY ───
+async function loadUploadHistory() {
+  const container = document.getElementById('upload-history');
+  if (!container) return;
+  container.innerHTML = '<div class="skeleton-card"><div class="skeleton" style="height:14px;width:40%"></div></div>';
+  try {
+    const data = await AdminAPI.getUploadHistory();
+    const items = Array.isArray(data) ? data : (data.results || []);
+    if (!items.length) {
+      container.innerHTML = '<div class="upload-history-item"><div style="flex:1;color:var(--mocha);">No uploads found</div></div>';
+      return;
+    }
+    container.innerHTML = items.slice(0,10).map(it => `
+      <div class="upload-history-item">
+        <div class="upload-file-icon">${it.type === 'excel' ? '📊' : '📄'}</div>
+        <div style="flex:1;">
+          <div class="upload-file-name">${it.filename || it.name || 'upload'}</div>
+          <div class="upload-file-meta">${it.count ? it.count + ' schemes imported' : (it.message||'')} · ${it.timestamp ? new Date(it.timestamp).toLocaleDateString() : ''}${it.user ? ' · by ' + it.user : ''}</div>
+        </div>
+        <span class="status-pill ${it.status === 'processed' || it.status === 'done' ? 'status-active' : (it.status === 'failed' ? 'status-expired' : '')}">${it.status || ''}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('Upload history error', err);
+    container.innerHTML = '<div class="upload-history-item"><div style="flex:1;color:var(--mocha);">Failed to load upload history</div></div>';
+  }
+}
+
 // ─── INIT ───
 updateNavbar();
 loadDashboard();
-renderSchemesTable('manage-table', MOCK_ADMIN_SCHEMES, true);
+loadSchemes();
 renderUsersTable();
+loadUploadHistory();
 </script>
 </body>
 </html>
