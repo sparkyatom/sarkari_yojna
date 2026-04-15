@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — SarkariYojana</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .auth-shell {
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      min-height: calc(100vh - 64px);
+    }
+
+    .auth-left {
+      background: var(--deep-forest);
+      padding: 80px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-left::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      right: -80px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(69, 62, 58, 0.2) 0%, transparent 65%);
+      border-radius: 50%;
+    }
+
+    .auth-left::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      left: -40px;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(61, 90, 71, 0.4) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .auth-headline {
+      position: relative;
+      z-index: 2;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 900;
+      color: var(--warm-white);
+      line-height: 1.15;
+      margin-bottom: 18px;
+    }
+
+    .auth-headline em {
+      color: var(--terracotta);
+      font-style: normal;
+    }
+
+    .auth-sub {
+      position: relative;
+      z-index: 2;
+      font-size: 15px;
+      color: var(--light-mocha);
+      line-height: 1.75;
+      max-width: 380px;
+      margin-bottom: 48px;
+    }
+
+    .auth-features {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .auth-feature {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(212, 96, 58, 0.18);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .feature-text {
+      font-size: 14px;
+      color: var(--light-mocha);
+    }
+
+    .auth-right {
+      background: var(--warm-white);
+      padding: 60px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow-y: auto;
+    }
+
+    .auth-form-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--charcoal);
+      margin-bottom: 6px;
+    }
+
+    .auth-form-sub {
+      font-size: 14px;
+      color: var(--mocha);
+      margin-bottom: 36px;
+    }
+
+    .auth-form-group {
+      margin-bottom: 20px;
+    }
+
+    .auth-form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--charcoal);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .auth-form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--sand);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+
+    .auth-form-input:focus {
+      outline: none;
+      border-color: var(--terracotta);
+      background: var(--warm-white);
+      box-shadow: 0 0 0 3px rgba(212, 96, 58, 0.08);
+    }
+
+    .alert {
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      font-size: 13px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .alert-error {
+      background: rgba(184, 80, 66, 0.1);
+      color: var(--soft-red);
+      border: 1px solid rgba(184, 80, 66, 0.3);
+    }
+
+    .alert.hidden {
+      display: none;
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--terracotta);
+      color: white;
+      width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--soft-red);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .spinner.hidden {
+      display: none;
+    }
+
+    .auth-links {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--mocha);
+    }
+
+    .auth-links a {
+      color: var(--terracotta);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .auth-links a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 900px) {
+      .auth-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-left {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
+    <ul class="navbar-links">
+      <li><a href="index.html">🏠 Home</a></li>
+      <li><a href="login-choice.html" class="active">🔐 Login</a></li>
+    </ul>
+    <div id="navbar-user-area"></div>
+  </nav>
+
+  <div class="auth-shell">
+    <div class="auth-left">
+      <div>
+        <div class="auth-headline">
+          Secure
+          <em>Admin</em>
+          <br />
+          Access
+        </div>
+        <p class="auth-sub">Manage schemes, users, and system data securely. Only authorized administrators can access.</p>
+
+        <div class="auth-features">
+          <div class="auth-feature">
+            <div class="feature-icon">🔒</div>
+            <div class="feature-text">Secure authentication required</div>
+          </div>
+          <div class="auth-feature">
+            <div class="feature-icon">📊</div>
+            <div class="feature-text">Full system analytics & reporting</div>
+          </div>
+          <div class="auth-feature">
+            <div class="feature-icon">⚙️</div>
+            <div class="feature-text">Complete scheme & user management</div>
+          </div>
+          <div class="auth-feature">
+            <div class="feature-icon">📤</div>
+            <div class="feature-text">Bulk data upload & processing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-right">
+      <div class="auth-form-title">
+        🔐 Admin Login
+      </div>
+      <p class="auth-form-sub">Enter your administrator credentials</p>
+
+      <div id="login-error" class="alert alert-error hidden">
+        <span>⚠️</span><span id="login-error-msg">Invalid credentials</span>
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+        <div class="auth-form-group">
+          <label class="auth-form-label">Username</label>
+          <input
+            type="text"
+            id="login-user"
+            class="auth-form-input"
+            placeholder="Your admin username"
+            required
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-form-label">Password</label>
+          <input
+            type="password"
+            id="login-pass"
+            class="auth-form-input"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+          <span id="login-btn-text">Admin Sign In →</span>
+          <span id="login-spinner" class="spinner hidden"></span>
+        </button>
+      </form>
+
+      <div class="auth-links">
+        👤 Are you a regular user? <a href="login-choice.html">Go Back →</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    async function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('login-user').value.trim();
+      const password = document.getElementById('login-pass').value;
+
+      if (!username || !password) {
+        showError('Please enter both username and password');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        await AuthAPI.login(username, password);
+        const user = Auth.getUser();
+        if (user && user.is_admin) {
+          window.location.href = 'admin-panel.html';
+        } else {
+          showError('Admin access only. Please use admin credentials.');
+          Auth.logout();
+        }
+      } catch (err) {
+        const msg = err.message || 'Login failed. Check your credentials.';
+        showError(msg);
+        console.error('Login error:', err);
+      }
+
+      setLoading(false);
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('login-error');
+      document.getElementById('login-error-msg').textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    function setLoading(loading) {
+      document.getElementById('login-btn-text').textContent =
+        loading ? 'Signing in...' : 'Admin Sign In →';
+      document.getElementById('login-spinner').classList.toggle('hidden', !loading);
+      document.getElementById('login-btn').disabled = loading;
+    }
+
+    // If already logged in, redirect
+    if (Auth.isLoggedIn()) {
+      const user = Auth.getUser();
+      if (user && user.is_admin) {
+        window.location.href = 'admin-panel.html';
+      } else {
+        Auth.logout();
+      }
+    }
+  </script>
+</body>
+</html>

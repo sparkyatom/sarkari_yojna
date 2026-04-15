@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — SarkariYojana</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .choice-shell {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: calc(100vh - 64px);
+    }
+
+    .choice-side {
+      background: var(--deep-forest);
+      padding: 80px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .choice-side::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      right: -80px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(69, 62, 58, 0.2) 0%, transparent 65%);
+      border-radius: 50%;
+    }
+
+    .choice-side::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      left: -40px;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(61, 90, 71, 0.4) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .choice-content {
+      position: relative;
+      z-index: 2;
+      max-width: 320px;
+    }
+
+    .choice-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .choice-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--warm-white);
+      margin-bottom: 12px;
+    }
+
+    .choice-subtitle {
+      font-size: 14px;
+      color: var(--light-mocha);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .choice-btn {
+      display: inline-block;
+      padding: 16px 32px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      text-align: center;
+      width: 100%;
+    }
+
+    .choice-btn-admin {
+      background: var(--terracotta);
+      color: white;
+    }
+
+    .choice-btn-admin:hover {
+      background: var(--soft-red);
+      transform: translateY(-2px);
+    }
+
+    .choice-btn-user {
+      background: var(--forest);
+      color: white;
+    }
+
+    .choice-btn-user:hover {
+      background: var(--deep-forest);
+      transform: translateY(-2px);
+    }
+
+    .choice-divider {
+      text-align: center;
+      margin-top: 48px;
+    }
+
+    .choice-divider-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--light-mocha);
+      font-size: 12px;
+    }
+
+    .choice-divider-line::before,
+    .choice-divider-line::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .choice-section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--charcoal);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .choice-section-desc {
+      font-size: 14px;
+      color: var(--mocha);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .choice-features {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+      max-width: 280px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .choice-feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--mid-brown);
+    }
+
+    .choice-feature-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .center-text {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--mocha);
+    }
+
+    .center-text a {
+      color: var(--terracotta);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .center-text a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
+    <ul class="navbar-links">
+      <li><a href="index.html">🏠 Home</a></li>
+      <li><a href="schemes.html">📋 Schemes</a></li>
+    </ul>
+    <div id="navbar-user-area"></div>
+  </nav>
+
+  <div class="choice-shell">
+    <!-- ADMIN LOGIN -->
+    <div class="choice-side">
+      <div class="choice-content">
+        <div class="choice-icon">🔐</div>
+        <div class="choice-title">Admin</div>
+        <div class="choice-subtitle">Access the administrative dashboard to manage schemes and user data</div>
+        <a href="admin-login.html" class="choice-btn choice-btn-admin">Admin Login →</a>
+
+        <div class="choice-divider">
+          <div class="choice-divider-line">
+            or
+          </div>
+        </div>
+
+        <div class="center-text">
+          🔄 Are you a user? <a href="login.html">User Login & Register →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- USER LOGIN & REGISTER -->
+    <div class="choice-side" style="background: var(--warm-white); color: var(--charcoal);">
+      <div class="choice-content">
+        <div class="choice-icon" style="color: var(--forest);">👤</div>
+        <div class="choice-title" style="color: var(--charcoal);">Users</div>
+        <div class="choice-subtitle" style="color: var(--mocha);">Browse government schemes and manage your applications</div>
+        <a href="login.html" class="choice-btn choice-btn-user">User Login →</a>
+
+        <div class="center-text" style="margin-top: 16px;">
+          ✨ New to SarkariYojana? <a href="signup.html" style="color: var(--forest);">Create Free Account →</a>
+        </div>
+
+        <div class="choice-features">
+          <div class="choice-feature">
+            <span class="choice-feature-icon">🎯</span>
+            <span>50+ Government Schemes</span>
+          </div>
+          <div class="choice-feature">
+            <span class="choice-feature-icon">⚡</span>
+            <span>Smart Eligibility Matching</span>
+          </div>
+          <div class="choice-feature">
+            <span class="choice-feature-icon">📅</span>
+            <span>Deadline Alerts</span>
+          </div>
+          <div class="choice-feature">
+            <span class="choice-feature-icon">100%</span>
+            <span>Completely Free & Secure</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    function updateNavbar() {
+      const user = Auth.getUser();
+      const userArea = document.getElementById('navbar-user-area');
+      if (!userArea) return;
+      if (user) {
+        if (user.is_admin) {
+          window.location.href = 'admin-panel.html';
+        } else {
+          window.location.href = 'profile.html';
+        }
+      }
+    }
+    updateNavbar();
+  </script>
+</body>
+</html>
