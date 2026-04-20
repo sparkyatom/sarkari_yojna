@@ -68,6 +68,14 @@ async function apiFetch(path, options = {}) {
   return data;
 }
 
+function getAuthHeaders(includeJson = true) {
+  const headers = {};
+  if (includeJson) headers['Content-Type'] = 'application/json';
+  const token = Auth.getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 async function refreshToken() {
   try {
     const res = await fetch(`${API_BASE}/auth/token/refresh/`, {
@@ -166,6 +174,9 @@ const AdminAPI = {
     const qs = new URLSearchParams(params).toString();
     return apiFetch(`/admin/schemes/${qs ? '?' + qs : ''}`);
   },
+  async getSchemeDetail(id) {
+    return apiFetch(`/admin/schemes/${id}/`);
+  },
   async createScheme(payload) {
     return apiFetch('/admin/schemes/', { method: 'POST', body: payload });
   },
@@ -180,12 +191,31 @@ const AdminAPI = {
     fd.append('file', file);
     return apiFetchForm('/admin/upload/excel/', fd);
   },
+  async uploadJson(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    return apiFetchForm('/admin/upload/json/', fd);
+  },
   async listUsers(params = {}) {
     const qs = new URLSearchParams(params).toString();
     return apiFetch(`/admin/users/${qs ? '?' + qs : ''}`);
   },
   async getUploadHistory() {
     return apiFetch('/admin/uploads/');
+  },
+  getExcelTemplateUrl() {
+    return `${API_BASE}/admin/template/excel/`;
+  },
+  async downloadExcelTemplate() {
+    const res = await fetch(this.getExcelTemplateUrl(), {
+      method: 'GET',
+      headers: getAuthHeaders(false),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw data;
+    }
+    return res.blob();
   }
 };
 
@@ -226,13 +256,13 @@ function updateNavbar() {
   // 🟢 HANDLE NAV LINKS (NEW — SAFE ADDITION)
   if (navLinks) {
     let links = `
-      <li><a href="index.html">🏠 Home</a></li>
-      <li><a href="schemes.html">📋 Schemes</a></li>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="schemes.html">Schemes</a></li>
     `;
 
     // ✅ Only admin sees admin panel
     if (user && user.is_admin) {
-      links += `<li><a href="admin-panel.html">⚙️ Admin</a></li>`;
+      links += `<li><a href="admin-panel.html">Admin</a></li>`;
     }
 
     navLinks.innerHTML = links;

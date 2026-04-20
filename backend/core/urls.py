@@ -5,6 +5,8 @@ from .views import (
     AdminSchemeListCreateView,
     AdminSchemeDetailView,
     ExcelUploadView,
+    JsonUploadView,
+    ExcelTemplateDownloadView,
     AdminUsersView,
     UploadHistoryView,
 )
@@ -14,6 +16,8 @@ urlpatterns = [
     path('schemes/',            AdminSchemeListCreateView.as_view(),  name='admin-schemes'),
     path('schemes/<int:pk>/',   AdminSchemeDetailView.as_view(),      name='admin-scheme-detail'),
     path('upload/excel/',       ExcelUploadView.as_view(),            name='admin-upload-excel'),
+    path('upload/json/',        JsonUploadView.as_view(),             name='admin-upload-json'),
+    path('template/excel/',     ExcelTemplateDownloadView.as_view(),  name='admin-template-excel'),
     path('users/',              AdminUsersView.as_view(),             name='admin-users'),
     path('uploads/',            UploadHistoryView.as_view(),          name='admin-uploads'),
 ]

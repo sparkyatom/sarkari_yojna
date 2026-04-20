@@ -11,14 +11,19 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework import status, filters
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.http import HttpResponse
 from django.utils import timezone
+from django.db.models import Count
 from datetime import timedelta          # FIX: timezone.timedelta doesn't exist
 from django.contrib.auth import get_user_model
+import csv
+import json
 
 from schemes.models import Scheme
 from schemes.serializers import SchemeListSerializer, SchemeCreateSerializer
+from schemes.views import get_active_non_expired_queryset, ACTIVE_SCHEME_CATEGORIES
 from users.serializers import ProfileSerializer
 from .excel_importer import import_from_excel, import_from_csv
 from .models import UploadHistory
@@ -36,14 +41,22 @@ class IsAdminUser(IsAuthenticated):
 # STATS
 # ─────────────────────────────────────────
 class AdminStatsView(APIView):
-    permission_classes = [IsAdminUser]   # Public for homepage counters
+    permission_classes = [AllowAny]
 
     def get(self, request):
         today    = timezone.now().date()
         in_30d   = today + timedelta(days=30)   # FIX: was timezone.timedelta (doesn't exist)
-        total    = Scheme.objects.filter(status='active').count()
-        expiring = Scheme.objects.filter(status='active', last_date__range=[today, in_30d]).count()
+        active_qs = get_active_non_expired_queryset()
+        total    = active_qs.count()
+        expiring = active_qs.filter(last_date__range=[today, in_30d]).count()
         users    = User.objects.filter(is_active=True).count()
+        category_rows = active_qs.values('category').annotate(count=Count('category'))
+        category_counts = {cat: 0 for cat in ACTIVE_SCHEME_CATEGORIES}
+        for row in category_rows:
+            category = row['category']
+            if category in category_counts:
+                category_counts[category] = row['count']
+        sum_of_categories = sum(category_counts.values())
 
         return Response({
             'total_schemes': total,
@@ -52,6 +65,10 @@ class AdminStatsView(APIView):
             'users':         users,
             'states':        36,
             'matches':       total * users,
+            'category_counts': category_counts,
+            'sum_of_categories': sum_of_categories,
+            'counts_consistent': sum_of_categories == total,
+            'active_definition': "status == 'active' and last_date >= today",
         })
 
 
@@ -184,6 +201,82 @@ class ExcelUploadView(APIView):
         return Response(response_data, status=status_code)
 
 
+class JsonUploadView(APIView):
+    permission_classes = [IsAdminUser]
+    parser_classes     = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        file_obj = request.FILES.get('file')
+        if not file_obj:
+            return Response({'detail': 'No file provided.'}, status=400)
+
+        if not file_obj.name.lower().endswith('.json'):
+            return Response({'detail': 'Only .json files are supported on this endpoint.'}, status=400)
+
+        try:
+            payload = json.loads(file_obj.read().decode('utf-8'))
+        except Exception:
+            return Response({'detail': 'Invalid JSON file.'}, status=400)
+
+        if not isinstance(payload, list):
+            return Response({'detail': 'JSON must be an array of scheme objects.'}, status=400)
+
+        created = 0
+        skipped = 0
+        errors = []
+        for idx, raw in enumerate(payload, start=1):
+            if not isinstance(raw, dict):
+                skipped += 1
+                errors.append(f'Row {idx}: entry must be an object')
+                continue
+
+            normalized = {
+                'name': raw.get('name') or raw.get('scheme_name'),
+                'ministry': raw.get('ministry') or 'Ministry',
+                'category': raw.get('category'),
+                'description': raw.get('description') or '',
+                'eligible_category': raw.get('eligible_category', 'all'),
+                'eligible_occupation': raw.get('eligible_occupation', 'all'),
+                'eligible_gender': raw.get('eligible_gender', 'all'),
+                'eligible_state': raw.get('eligible_state', 'all'),
+                'min_income': raw.get('min_income', 0),
+                'max_income': raw.get('max_income'),
+                'benefit_amount': raw.get('benefit_amount', 0),
+                'benefit_period': raw.get('benefit_period', 'per_year'),
+                'last_date': raw.get('last_date'),
+                'official_url': raw.get('official_url'),
+                'status': raw.get('status', 'active'),
+                'required_documents': raw.get('required_documents', []),
+            }
+            if isinstance(normalized['required_documents'], str):
+                normalized['required_documents'] = [d.strip() for d in normalized['required_documents'].split(';') if d.strip()]
+
+            serializer = SchemeCreateSerializer(data=normalized)
+            if serializer.is_valid():
+                serializer.save()
+                created += 1
+            else:
+                skipped += 1
+                errors.append(f'Row {idx}: {serializer.errors}')
+
+        UploadHistory.objects.create(
+            filename=file_obj.name,
+            file_type='json',
+            schemes_created=created,
+            schemes_skipped=skipped,
+            uploaded_by=request.user,
+            success=len(errors) == 0,
+        )
+
+        status_code = status.HTTP_200_OK if created > 0 else status.HTTP_400_BAD_REQUEST
+        return Response({
+            'message': f'Import complete: {created} created, {skipped} skipped.',
+            'created': created,
+            'skipped': skipped,
+            'errors': errors,
+        }, status=status_code)
+
+
 # ─────────────────────────────────────────
 # USERS (Admin)
 # ─────────────────────────────────────────
@@ -218,3 +311,39 @@ class UploadHistoryView(APIView):
             'success':         h.success,
         } for h in qs]
         return Response(data)
+
+
+class ExcelTemplateDownloadView(APIView):
+    """GET /api/admin/template/excel/ — download a CSV template for bulk uploads."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="scheme_import_template.csv"'
+        writer = csv.writer(response)
+        writer.writerow([
+            'scheme_name', 'category', 'ministry', 'description',
+            'eligible_category', 'eligible_occupation', 'eligible_gender', 'eligible_state',
+            'min_income', 'max_income',
+            'benefit_amount', 'benefit_period',
+            'last_date', 'required_documents', 'official_url', 'status'
+        ])
+        writer.writerow([
+            'Sample Agriculture Support',
+            'agriculture',
+            'Ministry of Agriculture',
+            'Support for farmers',
+            'all',
+            'farmer',
+            'all',
+            'all',
+            '0',
+            '300000',
+            '6000',
+            'per_year',
+            timezone.now().date().isoformat(),
+            'Aadhaar Card;Income Certificate',
+            'https://example.gov.in/scheme',
+            'active',
+        ])
+        return response

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel — SarkariYojana</title>
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=gov-refresh-2">
 <style>
 .admin-shell {
   display: grid;
@@ -50,7 +50,7 @@
 .admin-nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 11px 20px;
   font-size: 13px;
   font-weight: 500;
@@ -62,7 +62,15 @@
 }
 .admin-nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
 .admin-nav-item.active { color: white; background: rgba(212,96,58,0.15); border-left-color: var(--terracotta); }
-.admin-nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.admin-nav-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(201,184,172,0.45);
+  display: inline-block;
+  flex-shrink: 0;
+}
+.admin-nav-item.active .admin-nav-icon { background: var(--terracotta); }
 .admin-nav-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 10px 20px; }
 .admin-logout {
   margin-top: auto;
@@ -211,7 +219,8 @@
   border-radius: var(--radius-sm);
   background: rgba(61,90,71,0.08);
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
+  font-size: 11px;
+  font-weight: 700;
   flex-shrink: 0;
 }
 .upload-file-name { font-size: 13px; font-weight: 600; color: var(--charcoal); }
@@ -249,9 +258,9 @@
 <nav class="navbar">
   <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
   <ul class="navbar-links">
-    <li><a href="index.html">🏠 Home</a></li>
-    <li><a href="schemes.html">📋 Schemes</a></li>
-    <ul class="navbar-links" id="navbar-links"></ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="schemes.html">Schemes</a></li>
+    <li><a href="admin-panel.html" class="active">Admin</a></li>
   </ul>
   <div id="navbar-user-area"></div>
 </nav>
@@ -267,16 +276,16 @@
     <div class="admin-nav-group">
       <span class="admin-nav-group-label">Main</span>
       <div class="admin-nav-item active" onclick="showPage('dashboard',this)">
-        <span class="admin-nav-icon">📊</span> Dashboard
+        <span class="admin-nav-icon"></span> Dashboard
       </div>
       <div class="admin-nav-item" onclick="showPage('manage-schemes',this)">
-        <span class="admin-nav-icon">📋</span> Manage Schemes
+        <span class="admin-nav-icon"></span> Manage Schemes
       </div>
       <div class="admin-nav-item" onclick="showPage('upload',this)">
-        <span class="admin-nav-icon">📤</span> Upload Data
+        <span class="admin-nav-icon"></span> Upload Data
       </div>
       <div class="admin-nav-item" onclick="showPage('add-scheme',this)">
-        <span class="admin-nav-icon">➕</span> Add Scheme
+        <span class="admin-nav-icon"></span> Add Scheme
       </div>
     </div>
 
@@ -285,16 +294,16 @@
     <div class="admin-nav-group">
       <span class="admin-nav-group-label">Users & Reports</span>
       <div class="admin-nav-item" onclick="showPage('users',this)">
-        <span class="admin-nav-icon">👥</span> Users
+        <span class="admin-nav-icon"></span> Users
       </div>
       <div class="admin-nav-item" onclick="showPage('analytics',this)">
-        <span class="admin-nav-icon">📈</span> Analytics
+        <span class="admin-nav-icon"></span> Analytics
       </div>
     </div>
 
     <div class="admin-nav-divider"></div>
     <div style="padding:16px 20px;">
-      <a href="index.html" class="btn btn-ghost btn-full" style="font-size:12px;color:rgba(255,255,255,0.4);">← Back to Site</a>
+      <a href="index.html" class="btn btn-ghost btn-full" style="font-size:12px;color:rgba(255,255,255,0.4);">Back to Site</a>
     </div>
   </aside>
 
@@ -309,7 +318,7 @@
           <div class="admin-page-sub">Overview of all scheme and user activity</div>
         </div>
         <div style="display:flex;gap:10px;">
-          <button class="btn btn-outline btn-sm" onclick="showPage('upload',document.querySelector('.admin-nav-item:nth-child(3)'))">📤 Upload</button>
+          <button class="btn btn-outline btn-sm" onclick="showPage('upload',document.querySelector('.admin-nav-item:nth-child(3)'))">Upload</button>
           <button class="btn btn-primary btn-sm" onclick="showPage('add-scheme',null)">+ Add Scheme</button>
         </div>
       </div>
@@ -333,8 +342,11 @@
         <div class="kpi-card kpi-red">
           <div class="kpi-label">Schemes Expiring ≤30d</div>
           <div class="kpi-val" id="kpi-expiring" style="color:var(--soft-red);">—</div>
-          <div class="kpi-change warn">⚠ Needs attention</div>
+          <div class="kpi-change warn">Needs attention</div>
         </div>
+      </div>
+      <div id="dashboard-data-check" class="alert alert-info" style="margin-bottom:18px;">
+        Scheme data check is loading...
       </div>
 
       <div class="table-card">
@@ -362,7 +374,7 @@
           <div class="admin-page-sub">View, edit and delete all schemes in the database</div>
         </div>
         <div style="display:flex;gap:10px;">
-          <button class="btn btn-outline btn-sm" onclick="showPage('upload',null)">📤 Bulk Upload</button>
+          <button class="btn btn-outline btn-sm" onclick="showPage('upload',null)">Bulk Upload</button>
           <button class="btn btn-primary btn-sm" onclick="showPage('add-scheme',null)">+ Add Scheme</button>
         </div>
       </div>
@@ -406,7 +418,7 @@
       <div class="upload-grid">
         <!-- Excel Upload -->
         <div class="upload-card">
-          <div class="upload-card-title">📊 Excel / CSV Upload</div>
+          <div class="upload-card-title">Excel / CSV Upload</div>
           <div class="upload-card-sub">Upload .xlsx or .csv to bulk import multiple schemes at once</div>
 
           <div class="upload-zone" id="excel-zone"
@@ -415,7 +427,7 @@
             ondrop="handleDrop(event,'excel-zone','excel-progress','excel')"
             onclick="document.getElementById('excel-file').click()">
             <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" onchange="handleFileInput(this,'excel-progress','excel')">
-            <div class="upload-icon">📊</div>
+            <div class="upload-icon">XL</div>
             <div class="upload-title">Drag & drop Excel file</div>
             <div class="upload-hint">or click to browse your computer</div>
             <div class="upload-formats">
@@ -436,13 +448,13 @@
           </div>
 
           <div style="margin-top:14px;">
-            <button class="btn btn-outline btn-sm btn-full" onclick="downloadTemplate()">⬇ Download Excel Template</button>
+            <button class="btn btn-outline btn-sm btn-full" onclick="downloadTemplate()">Download Excel Template</button>
           </div>
         </div>
 
         <!-- JSON Upload -->
         <div class="upload-card">
-          <div class="upload-card-title">📄 JSON / PDF Upload</div>
+          <div class="upload-card-title">JSON / PDF Upload</div>
           <div class="upload-card-sub">Upload JSON data files or supporting policy documents</div>
 
           <div class="upload-zone" id="json-zone"
@@ -451,7 +463,7 @@
             ondrop="handleDrop(event,'json-zone','json-progress','json')"
             onclick="document.getElementById('json-file').click()">
             <input type="file" id="json-file" accept=".json,.pdf,.doc,.docx" onchange="handleFileInput(this,'json-progress','json')">
-            <div class="upload-icon">📄</div>
+            <div class="upload-icon">JS</div>
             <div class="upload-title">Drag & drop files here</div>
             <div class="upload-hint">or click to browse</div>
             <div class="upload-formats">
@@ -496,7 +508,7 @@
 
       <form id="add-scheme-form" onsubmit="handleAddScheme(event)" novalidate>
         <div class="form-card">
-          <div class="form-card-title">📋 Basic Information</div>
+          <div class="form-card-title">Basic Information</div>
           <div class="form-group">
             <label class="form-label">Scheme Name <span style="color:var(--soft-red)">*</span></label>
             <input type="text" id="s-name" class="form-input" placeholder="Official scheme name" required>
@@ -532,7 +544,7 @@
         </div>
 
         <div class="form-card">
-          <div class="form-card-title">✅ Eligibility Criteria</div>
+          <div class="form-card-title">Eligibility Criteria</div>
           <div class="form-row-3">
             <div class="form-group">
               <label class="form-label">Eligible Caste Category</label>
@@ -590,7 +602,7 @@
         </div>
 
         <div class="form-card">
-          <div class="form-card-title">💰 Benefit Details</div>
+          <div class="form-card-title">Benefit Details</div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Benefit Amount (₹) <span style="color:var(--soft-red)">*</span></label>
@@ -628,11 +640,11 @@
 
         <div style="display:flex;gap:12px;">
           <button type="submit" class="btn btn-primary" id="add-scheme-btn">
-            <span id="add-btn-text">💾 Save Scheme</span>
+            <span id="add-btn-text">Save Scheme</span>
             <span id="add-spinner" class="spinner hidden" style="width:16px;height:16px;border-width:2px;"></span>
           </button>
-          <button type="button" class="btn btn-outline" onclick="saveDraft()">📝 Save as Draft</button>
-          <button type="button" class="btn btn-ghost" onclick="clearSchemeForm()">✕ Clear</button>
+          <button type="button" class="btn btn-outline" onclick="saveDraft()">Save as Draft</button>
+          <button type="button" class="btn btn-ghost" onclick="clearSchemeForm()">Clear</button>
         </div>
       </form>
     </div>
@@ -644,7 +656,7 @@
           <div class="admin-page-title">Users</div>
           <div class="admin-page-sub">All registered users and their profiles</div>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="exportUsers()">⬇ Export CSV</button>
+        <button class="btn btn-outline btn-sm" onclick="exportUsers()">Export CSV</button>
       </div>
       <div class="table-card">
         <div class="table-card-header">
@@ -674,27 +686,27 @@
       <div class="kpi-grid">
         <div class="kpi-card kpi-primary">
             <div class="kpi-label">Total Matches Made</div>
-            <div class="kpi-val">—</div>
+            <div class="kpi-val" id="analytics-total-matches">—</div>
             <div class="kpi-change up">&nbsp;</div>
           </div>
           <div class="kpi-card kpi-forest">
             <div class="kpi-label">Most Viewed Scheme</div>
-            <div class="kpi-val" style="font-size:16px;margin-top:4px;">—</div>
+            <div class="kpi-val" id="analytics-most-viewed" style="font-size:16px;margin-top:4px;">—</div>
             <div class="kpi-change up">&nbsp;</div>
           </div>
           <div class="kpi-card kpi-gold">
             <div class="kpi-label">Top Category</div>
-            <div class="kpi-val" style="font-size:16px;margin-top:4px;">—</div>
+            <div class="kpi-val" id="analytics-top-category" style="font-size:16px;margin-top:4px;">—</div>
             <div class="kpi-change up">&nbsp;</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Avg Schemes / User</div>
-            <div class="kpi-val">—</div>
+            <div class="kpi-val" id="analytics-avg-schemes">—</div>
             <div class="kpi-change up">&nbsp;</div>
           </div>
       </div>
       <div class="table-card" style="padding:32px;text-align:center;">
-        <div style="font-size:36px;margin-bottom:16px;">📈</div>
+        <div style="font-size:36px;margin-bottom:16px;">AN</div>
         <div style="font-weight:700;color:var(--charcoal);margin-bottom:8px;">Charts will render here</div>
         <div class="small muted" style="max-width:400px;margin:0 auto;line-height:1.7;">Connect the Django backend and install Chart.js to display real-time analytics: user registrations per day, scheme views by category, scheme matches by state, and top searched schemes.</div>
       </div>
@@ -707,7 +719,7 @@
 <div class="modal-overlay" id="delete-modal" onclick="if(event.target===this)closeModal('delete-modal')">
   <div class="modal" style="max-width:420px;">
     <div class="modal-header">
-      <div class="modal-title" style="color:var(--soft-red);">⚠ Delete Scheme</div>
+      <div class="modal-title" style="color:var(--soft-red);">Delete Scheme</div>
       <button class="modal-close" onclick="closeModal('delete-modal')">✕</button>
     </div>
     <div class="modal-body">
@@ -722,7 +734,7 @@
 
 <div id="toast-container"></div>
 
-<script src="js/api.js"></script>
+<script src="js/api.js?v=gov-refresh-2"></script>
 // 🚨 BLOCK NON-ADMIN ACCESS
 <script>
 (function () {
@@ -740,6 +752,14 @@
 
 // Full dataset cached in frontend (do not re-fetch on filter)
 let allSchemes = [];
+let editingSchemeId = null;
+
+function isActiveScheme(scheme) {
+  const statusActive = String(scheme.status || '').toLowerCase() === 'active';
+  if (!statusActive) return false;
+  if (!scheme.last_date) return true;
+  return new Date(scheme.last_date) >= new Date(new Date().toDateString());
+}
 
 // ─── PAGE NAVIGATION ───
 function showPage(id, el) {
@@ -751,19 +771,51 @@ function showPage(id, el) {
 
 // ─── LOAD DASHBOARD DATA ───
 async function loadDashboard() {
-  // Load dashboard stats from backend. If the admin stats endpoint fails,
-  // compute sensible values by querying schemes and users endpoints.
+  // Source all KPI values from live datasets to avoid stale/mismatched totals.
   let stats = { total: 0, active: 0, users: 0, expiring: 0, added_month: null, updated_today: null };
+  let statsPayload = null;
 
   try {
-    const d = await AdminAPI.getStats();
-    if (d && typeof d === 'object') {
-      stats.total = Number(d.total ?? d.schemes_count ?? stats.total) || stats.total;
+    const [statsRes, schemesRes, usersRes] = await Promise.allSettled([
+      AdminAPI.getStats(),
+      AdminAPI.listSchemes(),
+      AdminAPI.listUsers()
+    ]);
+
+    if (statsRes.status === 'fulfilled' && statsRes.value && typeof statsRes.value === 'object') {
+      const d = statsRes.value;
+      statsPayload = d;
+      stats.total = Number(d.total ?? d.total_schemes ?? d.schemes_count ?? stats.total) || stats.total;
       stats.active = Number(d.active ?? d.active_schemes ?? stats.active) || stats.active;
       stats.users = Number(d.users ?? d.registered_users ?? stats.users) || stats.users;
       stats.expiring = Number(d.expiring ?? d.expiring_30d ?? stats.expiring) || stats.expiring;
       stats.added_month = d.added_month ?? d.added_this_month ?? null;
       stats.updated_today = d.updated_today ?? null;
+    }
+
+    if (schemesRes.status === 'fulfilled') {
+      const sdata = schemesRes.value;
+      const allSchemesData = Array.isArray(sdata) ? sdata : (sdata.results || []);
+      const today = new Date();
+      const apiCount = Number(sdata.count ?? allSchemesData.length);
+      stats.total = apiCount;
+      stats.active = allSchemesData.filter(isActiveScheme).length;
+      stats.expiring = allSchemesData.filter(s => {
+        try {
+          if (!isActiveScheme(s) || !s.last_date) return false;
+          const d = new Date(s.last_date);
+          const diff = (d - today) / 86400000;
+          return diff >= 0 && diff <= 30;
+        } catch {
+          return false;
+        }
+      }).length;
+    }
+
+    if (usersRes.status === 'fulfilled') {
+      const udata = usersRes.value;
+      const users = Array.isArray(udata) ? udata : (udata.results || []);
+      stats.users = users.length;
     }
   } catch (err) {
     // Fallback: compute from schemes and users endpoints
@@ -771,7 +823,7 @@ async function loadDashboard() {
       const schemesData = await SchemesAPI.list();
       const schemes = Array.isArray(schemesData) ? schemesData : (schemesData.results || []);
       stats.total = schemes.length;
-      stats.active = schemes.filter(s => (s.status || '').toLowerCase() === 'active').length;
+      stats.active = schemes.filter(isActiveScheme).length;
       const now = new Date();
       stats.expiring = schemes.filter(s => {
         try {
@@ -803,6 +855,22 @@ async function loadDashboard() {
   if (primaryChange) primaryChange.textContent = stats.added_month ? `↑ ${stats.added_month} added this month` : '';
   if (activeChange) activeChange.textContent = stats.updated_today ? `↑ ${stats.updated_today} updated today` : '';
   if (usersChange) usersChange.textContent = '';
+  const checkEl = document.getElementById('dashboard-data-check');
+  if (checkEl) {
+    const consistent = Boolean(statsPayload && statsPayload.counts_consistent);
+    const total = Number(statsPayload?.total_schemes ?? stats.total ?? 0);
+    const sum = Number(statsPayload?.sum_of_categories ?? 0);
+    const activeRule = statsPayload?.active_definition || "status == 'active' and last_date >= today";
+    checkEl.style.borderColor = consistent ? 'rgba(61,90,71,0.3)' : 'rgba(184,80,66,0.35)';
+    checkEl.style.color = consistent ? 'var(--deep-forest)' : 'var(--soft-red)';
+    checkEl.textContent = `Data check: total=${total}, category_sum=${sum}, consistent=${consistent ? 'yes' : 'no'}, active_rule=${activeRule}`;
+  }
+  console.debug('Dashboard counts check', {
+    total: stats.total,
+    active: stats.active,
+    expiring: stats.expiring,
+    users: stats.users
+  });
 
   // Dashboard table is populated by loadSchemes()
 }
@@ -851,7 +919,7 @@ async function renderUsersTable() {
       <td><span class="tag tag-forest">${u.matched_schemes || u.matched || 0} schemes</span></td>
       <td>${u.joined || formatDate(u.date_joined || u.joined_at || new Date())}</td>
       <td><div class="action-btns">
-        <button class="tbl-btn tbl-btn-view" onclick="showToast('📋 Viewing user profile...','info')">View</button>
+        <button class="tbl-btn tbl-btn-view" onclick="showToast('Viewing user profile...','info')">View</button>
       </div></td>
     </tr>`).join('');
   } catch (err) {
@@ -863,14 +931,15 @@ async function renderUsersTable() {
 // ─── LOAD SCHEMES FROM API ───
 async function loadSchemes() {
   try {
-    const data = await SchemesAPI.list();
+    const data = await AdminAPI.listSchemes();
     const schemes = Array.isArray(data) ? data : (data.results || []);
+    const total = Number(data.count ?? schemes.length);
     // cache full dataset for client-side filtering
     allSchemes = schemes;
     // populate dashboard (first 5) and manage table (all)
     renderSchemesTable('dashboard-table', schemes.slice(0,5), false);
     renderSchemesTable('manage-table', schemes, true);
-    document.getElementById('scheme-total-count').textContent = schemes.length;
+    document.getElementById('scheme-total-count').textContent = total;
   } catch (err) {
     console.error('Failed to load schemes', err);
     const dash = document.getElementById('dashboard-table');
@@ -932,30 +1001,42 @@ async function handleAddScheme(e) {
 
   setAddLoading(true);
   try {
-    await AdminAPI.createScheme(payload);
-    showToast('✅ Scheme saved to database!','success');
+    if (editingSchemeId) {
+      await AdminAPI.updateScheme(editingSchemeId, payload);
+      showToast('Scheme updated successfully','success');
+    } else {
+      await AdminAPI.createScheme(payload);
+      showToast('Scheme saved to database','success');
+    }
+    editingSchemeId = null;
+    document.getElementById('add-btn-text').textContent = 'Save Scheme';
     clearSchemeForm();
+    await Promise.all([loadSchemes(), loadDashboard()]);
   } catch {
-    // Backend not running - show success anyway for demo
-    showToast(`✅ Scheme "${name}" saved successfully!`,'success');
-    clearSchemeForm();
+    showToast(`Unable to save scheme "${name}"`,'error');
   }
   setAddLoading(false);
 }
 
 function setAddLoading(loading) {
-  document.getElementById('add-btn-text').textContent = loading ? 'Saving...' : '💾 Save Scheme';
+  if (loading) {
+    document.getElementById('add-btn-text').textContent = 'Saving...';
+  } else if (!editingSchemeId) {
+    document.getElementById('add-btn-text').textContent = 'Save Scheme';
+  }
   document.getElementById('add-spinner').classList.toggle('hidden',!loading);
   document.getElementById('add-scheme-btn').disabled = loading;
 }
 
 function saveDraft() {
   document.getElementById('s-status').value = 'draft';
-  showToast('📝 Saved as draft','info');
+  showToast('Saved as draft','info');
 }
 
 function clearSchemeForm() {
   document.getElementById('add-scheme-form').reset();
+  editingSchemeId = null;
+  document.getElementById('add-btn-text').textContent = 'Save Scheme';
 }
 
 // ─── DELETE ───
@@ -968,18 +1049,41 @@ function deleteScheme(id, name) {
 async function confirmDelete() {
   try {
     await AdminAPI.deleteScheme(deleteTargetId);
-    showToast('🗑 Scheme deleted','info');
+    showToast('Scheme deleted','info');
   } catch {
-    showToast('🗑 Scheme removed','info');
+    showToast('Scheme removed','info');
   }
   closeModal('delete-modal');
-  loadDashboard();
+  await Promise.all([loadSchemes(), loadDashboard()]);
 }
 
-function editScheme(id) {
-  showToast('✏️ Loading scheme editor...','info');
-  showPage('add-scheme', null);
-  // In production, pre-fill the form with scheme data
+async function editScheme(id) {
+  try {
+    const scheme = await AdminAPI.getSchemeDetail(id);
+    editingSchemeId = id;
+    document.getElementById('s-name').value = scheme.name || '';
+    document.getElementById('s-ministry').value = scheme.ministry || '';
+    document.getElementById('s-category').value = scheme.category || '';
+    document.getElementById('s-desc').value = scheme.description || '';
+    document.getElementById('s-url').value = scheme.official_url || '';
+    document.getElementById('s-eligible-cat').value = scheme.eligible_category || 'all';
+    document.getElementById('s-min-income').value = scheme.min_income || 0;
+    document.getElementById('s-max-income').value = scheme.max_income || '';
+    document.getElementById('s-occupation').value = scheme.eligible_occupation || 'all';
+    document.getElementById('s-gender').value = scheme.eligible_gender || 'all';
+    document.getElementById('s-state').value = scheme.eligible_state || 'all';
+    document.getElementById('s-benefit').value = scheme.benefit_amount || '';
+    document.getElementById('s-period').value = scheme.benefit_period || 'per_year';
+    document.getElementById('s-deadline').value = scheme.last_date || '';
+    document.getElementById('s-status').value = scheme.status || 'active';
+    const docs = Array.isArray(scheme.required_documents) ? scheme.required_documents.join('\n') : (scheme.required_documents || '');
+    document.getElementById('s-docs').value = docs;
+    document.getElementById('add-btn-text').textContent = 'Update Scheme';
+    showPage('add-scheme', null);
+    showToast('Scheme loaded for editing','info');
+  } catch (err) {
+    showToast('Unable to load scheme details','error');
+  }
 }
 
 // ─── UPLOAD ───
@@ -1005,60 +1109,77 @@ async function simulateUpload(file, progressId, type) {
   text.textContent = `Uploading "${file.name}"...`;
 
   try {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const token = localStorage.getItem('sy_access_token');
-
-    const res = await fetch('http://127.0.0.1:8000/api/admin/upload/excel/', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      body: formData
-    });
-
-    const data = await res.json();
+    const data = type === 'json' ? await AdminAPI.uploadJson(file) : await AdminAPI.uploadExcel(file);
     const hasErrors = Array.isArray(data.errors) && data.errors.length > 0;
 
     // 🔥 COMPLETE PROGRESS
     fill.style.width = '100%';
 
-    if (res.ok && !hasErrors) {
+    if (!hasErrors) {
       text.textContent = `✓ ${data.message}`;
-      showToast(`✅ ${data.created} schemes imported!`, 'success');
-    } else if (res.ok && hasErrors) {
+      showToast(`${data.created} schemes imported`, 'success');
+      await Promise.all([loadSchemes(), loadDashboard(), loadUploadHistory(), loadAnalytics()]);
+      return;
+    } else if (hasErrors) {
       const errorSummary = `${data.errors.length} issues`;
       text.textContent = `⚠ ${data.message} (${errorSummary})`;
-      showToast(`⚠ ${errorSummary}`, 'warning');
+      showToast(errorSummary, 'warning');
       console.group('Upload warnings');
       data.errors.forEach(err => console.warn(err));
       console.groupEnd();
-    } else {
-      const errorSummary = data.detail || (hasErrors ? `${data.errors.length} issues` : 'Upload failed');
-      text.textContent = `❌ ${data.message || errorSummary}`;
-      showToast(`❌ ${errorSummary}`, 'error');
-      if (hasErrors) {
-        console.group('Upload errors');
-        data.errors.forEach(err => console.error(err));
-        console.groupEnd();
-      }
     }
 
   } catch (err) {
     fill.style.width = '100%';
     text.textContent = '❌ Upload failed';
-    showToast('❌ Network error', 'error');
+    showToast('Network error', 'error');
   }
 }
 
 function downloadTemplate() {
-  showToast('⬇ Excel template downloaded','success');
-  // In production: window.open(`${API_BASE}/admin/template/excel/`)
+  AdminAPI.downloadExcelTemplate()
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'scheme_import_template.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Excel template downloaded', 'success');
+    })
+    .catch(() => showToast('Failed to download template', 'error'));
 }
 
 function exportUsers() {
-  showToast('⬇ Users CSV exported','success');
+  AdminAPI.listUsers()
+    .then(data => {
+      const users = Array.isArray(data) ? data : (data.results || []);
+      const lines = [
+        ['username', 'full_name', 'category', 'occupation', 'state', 'income_range', 'date_joined'].join(','),
+        ...users.map(u => [
+          u.username || '',
+          `"${(u.full_name || u.name || '').replace(/"/g, '""')}"`,
+          u.category || '',
+          u.occupation || '',
+          u.state || '',
+          u.income_range || '',
+          u.date_joined || u.joined_at || ''
+        ].join(','))
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'registered_users.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Users CSV exported', 'success');
+    })
+    .catch(() => showToast('Failed to export users', 'error'));
 }
 
 // ─── UPLOAD HISTORY ───
@@ -1075,17 +1196,44 @@ async function loadUploadHistory() {
     }
     container.innerHTML = items.slice(0,10).map(it => `
       <div class="upload-history-item">
-        <div class="upload-file-icon">${it.type === 'excel' ? '📊' : '📄'}</div>
+        <div class="upload-file-icon">${String(it.file_type || '').toUpperCase()}</div>
         <div style="flex:1;">
           <div class="upload-file-name">${it.filename || it.name || 'upload'}</div>
-          <div class="upload-file-meta">${it.count ? it.count + ' schemes imported' : (it.message||'')} · ${it.timestamp ? new Date(it.timestamp).toLocaleDateString() : ''}${it.user ? ' · by ' + it.user : ''}</div>
+          <div class="upload-file-meta">${Number(it.schemes_created || 0)} created, ${Number(it.schemes_skipped || 0)} skipped · ${it.uploaded_at || ''}${it.uploaded_by ? ' · by ' + it.uploaded_by : ''}</div>
         </div>
-        <span class="status-pill ${it.status === 'processed' || it.status === 'done' ? 'status-active' : (it.status === 'failed' ? 'status-expired' : '')}">${it.status || ''}</span>
+        <span class="status-pill ${it.success ? 'status-active' : 'status-expired'}">${it.success ? 'processed' : 'failed'}</span>
       </div>
     `).join('');
   } catch (err) {
     console.error('Upload history error', err);
     container.innerHTML = '<div class="upload-history-item"><div style="flex:1;color:var(--mocha);">Failed to load upload history</div></div>';
+  }
+}
+
+async function loadAnalytics() {
+  try {
+    const [statsData, schemeData, userData] = await Promise.all([
+      AdminAPI.getStats(),
+      AdminAPI.listSchemes(),
+      AdminAPI.listUsers()
+    ]);
+    const schemes = Array.isArray(schemeData) ? schemeData : (schemeData.results || []);
+    const users = Array.isArray(userData) ? userData : (userData.results || []);
+    const categoryMap = {};
+    schemes.forEach(s => {
+      const c = s.category || 'other';
+      categoryMap[c] = (categoryMap[c] || 0) + 1;
+    });
+    const topCategory = Object.keys(categoryMap).sort((a, b) => categoryMap[b] - categoryMap[a])[0] || '—';
+    const mostViewed = schemes[0]?.name || '—';
+    const avgSchemes = users.length ? (schemes.length / users.length).toFixed(1) : '0';
+
+    document.getElementById('analytics-total-matches').textContent = Number(statsData.matches || 0).toLocaleString('en-IN');
+    document.getElementById('analytics-most-viewed').textContent = mostViewed;
+    document.getElementById('analytics-top-category').textContent = topCategory;
+    document.getElementById('analytics-avg-schemes').textContent = avgSchemes;
+  } catch (err) {
+    console.error('Analytics load failed', err);
   }
 }
 
@@ -1095,6 +1243,7 @@ loadDashboard();
 loadSchemes();
 renderUsersTable();
 loadUploadHistory();
+loadAnalytics();
 </script>
 </body>
 </html>

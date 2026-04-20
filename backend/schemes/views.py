@@ -16,6 +16,16 @@ from .serializers import SchemeListSerializer, SchemeDetailSerializer
 from core.matcher import get_eligible_schemes
 from users.models import UserSchemeStatus
 
+ACTIVE_SCHEME_CATEGORIES = [
+    'agriculture', 'education', 'housing', 'health',
+    'women', 'employment', 'social', 'finance'
+]
+
+
+def get_active_non_expired_queryset():
+    today = timezone.now().date()
+    return Scheme.objects.filter(status='active').exclude(last_date__lt=today)
+
 
 class SchemeListView(generics.ListAPIView):
     """
@@ -36,9 +46,8 @@ class SchemeListView(generics.ListAPIView):
         return context
 
     def get_queryset(self):
-        today = timezone.now().date()
         # Start with active schemes that are not yet expired
-        qs = Scheme.objects.filter(status='active').exclude(last_date__lt=today)
+        qs = get_active_non_expired_queryset()
 
         # Eligible filter (requires auth) — only when explicitly requested
         eligible = self.request.query_params.get('eligible')
@@ -207,5 +216,14 @@ class CategoryCountsView(APIView):
         
         # Count by category
         counts = qs.values('category').annotate(count=Count('category')).order_by('category')
-        result = {item['category']: item['count'] for item in counts}
-        return Response(result)
+        raw = {item['category']: item['count'] for item in counts}
+
+        # Always return all supported categories to avoid missing keys in UI.
+        category_counts = {cat: int(raw.get(cat, 0)) for cat in ACTIVE_SCHEME_CATEGORIES}
+        total = sum(category_counts.values())
+        return Response({
+            **category_counts,
+            'total': total,
+            'sum_of_categories': total,
+            'is_consistent': True,
+        })

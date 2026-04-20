@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SarkariYojana — Check Your Eligibility for Government Schemes</title>
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=gov-refresh-2">
 <style>
 /* ─── PAGE-SPECIFIC STYLES ─── */
 .hero {
@@ -183,7 +183,6 @@ footer {
   gap: 40px;
   margin-bottom: 40px;
 }
-.footer-brand { }
 .footer-logo {
   font-family: 'Playfair Display', serif;
   font-size: 20px;
@@ -214,11 +213,11 @@ footer {
 <nav class="navbar">
   <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
   <ul class="navbar-links">
-    <li><a href="index.html" class="active"><span class="nav-icon">🏠</span> Home</a></li>
-    <li><a href="schemes.html"><span class="nav-icon">📋</span> Schemes</a></li>
-    <li><a href="login.html"><span class="nav-icon">🔐</span> Login</a></li>
-    <li><a href="signup.html"><span class="nav-icon">📝</span> Sign Up</a></li>
-    <li><a href="admin-panel.html"><span class="nav-icon">⚙️</span> Admin</a></li>
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="schemes.html">Schemes</a></li>
+    <li><a href="login.html">Login</a></li>
+    <li><a href="signup.html">Sign Up</a></li>
+    <li><a href="admin-panel.html">Admin</a></li>
   </ul>
   <div id="navbar-user-area"></div>
   <div class="navbar-mobile-toggle" onclick="toggleMobileMenu()">
@@ -392,23 +391,43 @@ footer {
   <div class="spinner"></div><p>Loading...</p>
 </div>
 
-<script src="js/api.js"></script>
+<script src="js/api.js?v=gov-refresh-2"></script>
 <script>
 // Update navbar
 updateNavbar();
 
-// Animate stats (try API first, fallback to defaults)
+// Animate stats using live backend aggregates
 async function loadStats() {
-  let stats = { total_schemes: 312, states: 36, users: 1847, matches: 14392 };
+  let stats = { total_schemes: 0, states: 36, users: 0, matches: 0 };
   try {
-    const data = await AdminAPI.getStats();
-    stats = { ...stats, ...data };
+    const [statsData, categoryCounts] = await Promise.all([
+      AdminAPI.getStats().catch(() => ({})),
+      SchemesAPI.getCategoryCounts().catch(() => ({}))
+    ]);
+    stats = { ...stats, ...statsData };
+
+    const categories = ['agriculture', 'education', 'housing', 'health', 'women', 'employment', 'social', 'finance'];
+    let sum = 0;
+    categories.forEach(cat => {
+      const val = Number(categoryCounts[cat] || 0);
+      sum += val;
+      const el = document.getElementById(`cat-${cat}`);
+      if (el) el.textContent = `${val} scheme${val === 1 ? '' : 's'}`;
+    });
+
+    const apiTotal = Number(categoryCounts.total || 0);
+    stats.total_schemes = Number(stats.total_schemes || apiTotal || sum || 0);
+    if (stats.total_schemes !== sum) {
+      console.warn('Category sum mismatch detected', { total: stats.total_schemes, sum });
+      stats.total_schemes = sum;
+    }
   } catch {}
+
   setTimeout(() => {
-    animateCounter(document.getElementById('s1'), stats.total_schemes || 312);
-    animateCounter(document.getElementById('s2'), stats.states || 36);
-    animateCounter(document.getElementById('s3'), stats.users || 1847);
-    animateCounter(document.getElementById('s4'), stats.matches || 14392);
+    animateCounter(document.getElementById('s1'), Number(stats.active || stats.total_schemes || 0));
+    animateCounter(document.getElementById('s2'), Number(stats.states || 36));
+    animateCounter(document.getElementById('s3'), Number(stats.users || 0));
+    animateCounter(document.getElementById('s4'), Number(stats.matches || 0));
   }, 400);
 }
 loadStats();

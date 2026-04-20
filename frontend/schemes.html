@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Browse Schemes — SarkariYojana</title>
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=gov-refresh-2">
 <style>
 .page-shell {
   display: grid;
@@ -131,7 +131,6 @@
 }
 .scheme-card.urgent::before { background: var(--terracotta); }
 .scheme-card.expiring::before { background: var(--gold); }
-.scheme-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--sand-dark); }
 
 .scheme-name {
   font-family: 'Playfair Display', serif;
@@ -193,6 +192,14 @@
   text-align: center;
 }
 .scheme-apply-btn:hover { background: var(--forest); }
+
+/* Enhanced hover */
+.scheme-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  border-color: var(--terracotta);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 /* eligibility banner */
 .eligible-banner {
@@ -269,11 +276,11 @@
 <nav class="navbar">
   <a href="index.html" class="navbar-logo">Sarkari<span>Yojana</span></a>
   <ul class="navbar-links">
-    <li><a href="index.html">🏠 Home</a></li>
-    <li><a href="schemes.html" class="active">📋 Schemes</a></li>
-    <li><a href="login.html" id="nav-login">🔐 Login</a></li>
-    <li><a href="signup.html" id="nav-signup">📝 Sign Up</a></li>
-    <li><a href="admin-panel.html">⚙️ Admin</a></li>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="schemes.html" class="active">Schemes</a></li>
+    <li><a href="login.html" id="nav-login">Login</a></li>
+    <li><a href="signup.html" id="nav-signup">Sign Up</a></li>
+    <li><a href="admin-panel.html">Admin</a></li>
   </ul>
   <div id="navbar-user-area"></div>
 </nav>
@@ -338,14 +345,14 @@
     <div class="sidebar-section">
       <span class="sidebar-label">Browse by Type</span>
       <ul class="sidebar-cat-list" id="cat-list">
-        <li><a onclick="filterByCategory('agriculture')" class="active">🌾 Agriculture <span class="cat-badge" id="cat-agriculture">0</span></a></li>
-        <li><a onclick="filterByCategory('education')">🎓 Education <span class="cat-badge" id="cat-education">0</span></a></li>
-        <li><a onclick="filterByCategory('housing')">🏠 Housing <span class="cat-badge" id="cat-housing">0</span></a></li>
-        <li><a onclick="filterByCategory('health')">🏥 Health <span class="cat-badge" id="cat-health">0</span></a></li>
-        <li><a onclick="filterByCategory('women')">👩 Women & Child <span class="cat-badge" id="cat-women">0</span></a></li>
-        <li><a onclick="filterByCategory('employment')">💼 Employment <span class="cat-badge" id="cat-employment">0</span></a></li>
-        <li><a onclick="filterByCategory('social')">🛡️ Social Security <span class="cat-badge" id="cat-social">0</span></a></li>
-        <li><a onclick="filterByCategory('finance')">💰 Finance <span class="cat-badge" id="cat-finance">0</span></a></li>
+        <li><a onclick="filterByCategory('agriculture', event)" class="active">Agriculture <span class="cat-badge" id="cat-agriculture">0</span></a></li>
+        <li><a onclick="filterByCategory('education', event)">Education <span class="cat-badge" id="cat-education">0</span></a></li>
+        <li><a onclick="filterByCategory('housing', event)">Housing <span class="cat-badge" id="cat-housing">0</span></a></li>
+        <li><a onclick="filterByCategory('health', event)">Health <span class="cat-badge" id="cat-health">0</span></a></li>
+        <li><a onclick="filterByCategory('women', event)">Women & Child <span class="cat-badge" id="cat-women">0</span></a></li>
+        <li><a onclick="filterByCategory('employment', event)">Employment <span class="cat-badge" id="cat-employment">0</span></a></li>
+        <li><a onclick="filterByCategory('social', event)">Social Security <span class="cat-badge" id="cat-social">0</span></a></li>
+        <li><a onclick="filterByCategory('finance', event)">Finance <span class="cat-badge" id="cat-finance">0</span></a></li>
       </ul>
     </div>
   </aside>
@@ -446,22 +453,25 @@
 
 <div id="toast-container"></div>
 
-<script src="js/api.js"></script>
+<script src="js/api.js?v=gov-refresh-2"></script>
 <script>
 let currentSchemes = [];
 let currentSchemeForModal = null;
+let totalSchemesCount = 0;
 
 // ─── LOAD SCHEMES ───
 async function loadSchemes(params = {}) {
   try {
     showLoading('Loading schemes...');
     const data = await SchemesAPI.list(params);
-    currentSchemes = data.results || data;
+    currentSchemes = Array.isArray(data) ? data : (data.results || []);
+    totalSchemesCount = Number(data.count ?? currentSchemes.length);
     renderSchemes(currentSchemes);
   } catch (err) {
     console.error('Error loading schemes:', err);
     showToast('Failed to load schemes', 'error');
     currentSchemes = [];
+    totalSchemesCount = 0;
     renderSchemes([]);
   }
   hideLoading();
@@ -483,10 +493,25 @@ async function loadEligible() {
   hideLoading();
 }
 
+// ─── HELPER: HUMAN-FRIENDLY DESCRIPTIONS ───
+function getHumanDescription(scheme) {
+  const descriptions = {
+    'agriculture': 'Get quick financial support for your farming needs, from seeds to post-harvest expenses.',
+    'education': 'Invest in quality education with financial assistance for students from all backgrounds.',
+    'health': 'Access healthcare support designed for you and your family\'s wellbeing.',
+    'housing': 'Build your dream home with easy financial assistance and zero-hassle approvals.',
+    'employment': 'Get trained and placed in rewarding jobs with career support.',
+    'women': 'Empowering women with financial independence and skill development.',
+    'social': 'Social security to ensure your family is protected and supported.',
+    'finance': 'Quick access to loans and credit for your dreams and aspirations.'
+  };
+  return descriptions[scheme.category] || scheme.description || 'Government benefit scheme';
+}
+
 // ─── RENDER SCHEMES ───
 function renderSchemes(schemes) {
   const list = document.getElementById('schemes-list');
-  document.getElementById('result-count').textContent = `Showing ${schemes.length} scheme${schemes.length !== 1 ? 's' : ''}`;
+  document.getElementById('result-count').textContent = `Showing ${schemes.length} of ${totalSchemesCount} schemes`;
 
   if (!schemes.length) {
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No schemes found</div><div class="empty-desc">Try adjusting your filters or search terms</div><button class="btn btn-primary" onclick="clearFilters()">Clear Filters</button></div>`;
@@ -497,10 +522,13 @@ function renderSchemes(schemes) {
     const dl = daysLeft(s.last_date);
     const urgency = dl < 15 ? 'urgent' : dl < 45 ? 'expiring' : '';
     const dlClass = dl < 15 ? 'deadline-urgent' : dl < 45 ? 'deadline-soon' : 'deadline-ok';
-    const dlText = dl < 0 ? '⛔ Expired' : dl < 15 ? `⚠ ${dl} days left` : `📅 ${formatDate(s.last_date)}`;
+    const dlText = dl < 0 ? 'Expired' : dl < 15 ? `${dl} days left` : formatDate(s.last_date);
     const applied = s.applied ? 'checked' : '';
     const isExpired = dl < 0;
     const applyDisabled = isExpired ? 'disabled' : '';
+    
+    const desc = getHumanDescription(s);
+    const schemeId = s.id || s.pk;
 
     return `
     <div class="scheme-card ${urgency} animate-in" style="animation-delay:${i*0.06}s">
@@ -510,10 +538,10 @@ function renderSchemes(schemes) {
           <span class="badge">${s.category}</span>
           ${s.eligible_category !== 'all' ? `<span class="badge">${s.eligible_category}</span>` : ''}
         </div>
-        <div class="scheme-desc">${s.description || ''}</div>
+        <div class="scheme-desc">${desc}</div>
         <div class="scheme-meta-row">
-          <div class="scheme-meta-item">🏛️ ${s.ministry || 'Ministry'}</div>
-          ${s.max_income ? `<div class="scheme-meta-item">💰 Up to ₹${formatCurrency(s.max_income)}</div>` : ''}
+          <div class="scheme-meta-item">Ministry: ${s.ministry || 'Ministry'}</div>
+          ${s.max_income ? `<div class="scheme-meta-item">Income limit: Up to ₹${formatCurrency(s.max_income)}</div>` : ''}
         </div>
       </div>
       <div class="scheme-right">
@@ -523,10 +551,10 @@ function renderSchemes(schemes) {
         </div>
         <div class="deadline-chip ${dlClass}">${dlText}</div>
         <div style="display:flex; gap:8px; width:100%;">
-          <button class="scheme-apply-btn" onclick="openSchemeDetail('${s.id}')">View</button>
+          <button type="button" class="scheme-apply-btn" onclick="openSchemeDetail('${schemeId}', event)">Details</button>
           <div style="display:flex; align-items:center; gap:4px;">
-            <input type="checkbox" id="apply-${s.id}" ${applied} ${applyDisabled} onchange="toggleApply('${s.id}', this.checked)" style="width:18px; height:18px; cursor:pointer; ${isExpired ? 'opacity:0.5;' : ''}">
-            <label for="apply-${s.id}" style="cursor:pointer; font-size:12px; color:var(--mocha); ${isExpired ? 'opacity:0.5;' : ''}">${isExpired ? 'Expired' : 'Apply'}</label>
+            <input type="checkbox" id="apply-${schemeId}" ${applied} ${applyDisabled} onchange="toggleApply('${schemeId}', this.checked)" style="width:18px; height:18px; cursor:pointer; ${isExpired ? 'opacity:0.5;' : ''}">
+            <label for="apply-${schemeId}" style="cursor:pointer; font-size:12px; color:var(--mocha); ${isExpired ? 'opacity:0.5;' : ''}">${isExpired ? 'Expired' : 'Apply'}</label>
           </div>
         </div>
       </div>
@@ -535,21 +563,25 @@ function renderSchemes(schemes) {
 }
 
 // ─── SCHEME DETAIL MODAL ───
-async function openSchemeDetail(id) {
-  console.log('Opening scheme detail for id:', id);
+async function openSchemeDetail(id, event) {
+  if (event) event.stopPropagation();
   try {
     const scheme = await SchemesAPI.getDetail(id);
-    console.log('Fetched scheme:', scheme);
     currentSchemeForModal = scheme;
     showSchemeDetailModal(scheme);
   } catch (err) {
-    console.error('Error loading scheme details:', err);
+    const fallback = currentSchemes.find(s => String(s.id || s.pk) === String(id));
+    if (fallback) {
+      currentSchemeForModal = fallback;
+      showSchemeDetailModal(fallback);
+      return;
+    }
     showToast('Failed to load scheme details', 'error');
   }
 }
 
 function showSchemeDetailModal(s) {
-  document.getElementById('modal-icon').textContent = '📋';
+  document.getElementById('modal-icon').textContent = 'SC';
   document.getElementById('modal-title').textContent = s.name;
   document.getElementById('modal-ministry').textContent = s.ministry || 'Ministry';
   document.getElementById('modal-desc').textContent = s.description || '';
@@ -562,18 +594,7 @@ function showSchemeDetailModal(s) {
   const docs = (s.required_documents || []).map(d => `<div class="doc-item">✅ ${d}</div>`).join('');
   document.getElementById('modal-docs').innerHTML = docs || '<div class="doc-item">No specific documents required</div>';
   
-  // Show modal
-  document.getElementById('scheme-modal').style.display = 'flex';
-}
-
-function closeSchemeDetailModal() {
-  const modal = document.getElementById('scheme-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-function closeModal(id) {
-  const modal = document.getElementById(id);
-  if (modal) modal.style.display = 'none';
+  openModal('scheme-modal');
 }
 
 function applyNow() {
@@ -630,16 +651,17 @@ async function toggleApply(schemeId, applied) {
 async function loadCategoryCounts() {
   try {
     const counts = await SchemesAPI.getCategoryCounts();
-    console.log('Category counts:', counts);
-    Object.keys(counts).forEach(cat => {
+    const categoryKeys = ['agriculture', 'education', 'housing', 'health', 'women', 'employment', 'social', 'finance'];
+    categoryKeys.forEach(cat => {
       const el = document.getElementById(`cat-${cat}`);
       if (el) {
-        el.textContent = counts[cat];
-        console.log(`Updated cat-${cat} to ${counts[cat]}`);
-      } else {
-        console.log(`Element cat-${cat} not found`);
+        el.textContent = Number(counts[cat] || 0);
       }
     });
+    const sum = categoryKeys.reduce((acc, key) => acc + Number(counts[key] || 0), 0);
+    if (Number(counts.total || sum) !== sum) {
+      console.warn('Category sum mismatch', { total: counts.total, sum });
+    }
   } catch (err) {
     console.error('Error loading category counts:', err);
   }
@@ -677,9 +699,11 @@ function applyFilters() {
   loadSchemes(params);
 }
 
-function filterByCategory(cat) {
+function filterByCategory(cat, ev) {
   document.querySelectorAll('.sidebar-cat-list a').forEach(a => a.classList.remove('active'));
-  event.target.closest('a').classList.add('active');
+  if (ev && ev.target) {
+    ev.target.closest('a').classList.add('active');
+  }
   document.getElementById('f-category').value = cat;
   applyFilters();
 }
@@ -783,37 +807,6 @@ function showToast(msg, type = 'info') {
     toast.classList.add('removing');
     setTimeout(() => toast.remove(), 300);
   }, 3000);
-}
-
-// ─── INIT ───
-function updateNavbar() {
-  const user = Auth.getUser();
-  const navArea = document.getElementById('navbar-user-area');
-  const loginLink = document.getElementById('nav-login');
-  const signupLink = document.getElementById('nav-signup');
-  
-  if (!navArea) return;
-  
-  if (user) {
-    if (loginLink) loginLink.style.display = 'none';
-    if (signupLink) signupLink.style.display = 'none';
-    navArea.innerHTML = `
-      <div style="display:flex; align-items:center; gap:16px; padding-right:20px;">
-        <span style="font-size:14px; color:var(--charcoal);">${user.username}</span>
-        <a href="profile.html" style="padding:8px 16px; background:var(--deep-forest); color:white; border-radius:4px; text-decoration:none; font-size:13px;">👤 Profile</a>
-        <button onclick="logout()" style="padding:8px 16px; background:rgba(255,255,255,0.2); color:white; border:none; border-radius:4px; cursor:pointer; font-size:13px;">Logout</button>
-      </div>
-    `;
-  } else {
-    navArea.innerHTML = '';
-    if (loginLink) loginLink.style.display = 'block';
-    if (signupLink) signupLink.style.display = 'block';
-  }
-}
-
-async function logout() {
-  await AuthAPI.logout();
-  window.location.href = '/index.html';
 }
 
 updateNavbar();
