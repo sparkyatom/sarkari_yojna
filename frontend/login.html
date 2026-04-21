@@ -202,12 +202,20 @@
 
 <div id="toast-container"></div>
 
-<script src="js/api.js"></script>
+<script src="js/api.js?v=gov-refresh-4"></script>
 <script>
 updateNavbar();
 
 // Redirect if already logged in
 if (Auth.isLoggedIn()) window.location.href = 'schemes.html';
+
+// Prefer the login choice screen (separate user/admin logins)
+// Keep this page usable if someone lands here directly.
+const params = new URLSearchParams(window.location.search);
+if (!params.get('stay')) {
+  // send to choice UI; add ?stay=1 to bypass
+  window.location.href = 'login-choice.html';
+}
 
 async function handleLogin(e) {
   e.preventDefault();

@@ -55,7 +55,7 @@ async function apiFetch(path, options = {}) {
       return data;
     } else {
       Auth.clearTokens();
-      window.location.href = '/login.html';
+      window.location.href = 'login-choice.html';
       return;
     }
   }
@@ -253,19 +253,56 @@ function updateNavbar() {
 
   if (!userArea) return;
 
-  // 🟢 HANDLE NAV LINKS (NEW — SAFE ADDITION)
+  // Make navbar consistent across all pages.
+  // We can't rely on each HTML file to include the same links, so we
+  // add missing "Profile" / "Admin" entries and hide/show appropriately.
   if (navLinks) {
-    let links = `
-      <li><a href="index.html">Home</a></li>
-      <li><a href="schemes.html">Schemes</a></li>
-    `;
+    const ensureLink = (href, label, beforeHref = null) => {
+      let a = navLinks.querySelector(`a[href="${href}"]`);
+      if (a) return a;
 
-    // ✅ Only admin sees admin panel
-    if (user && user.is_admin) {
-      links += `<li><a href="admin-panel.html">Admin</a></li>`;
+      const li = document.createElement('li');
+      a = document.createElement('a');
+      a.href = href;
+      a.textContent = label;
+      li.appendChild(a);
+
+      if (beforeHref) {
+        const beforeA = navLinks.querySelector(`a[href="${beforeHref}"]`);
+        const beforeLi = beforeA ? beforeA.closest('li') : null;
+        if (beforeLi) {
+          navLinks.insertBefore(li, beforeLi);
+          return a;
+        }
+      }
+      navLinks.appendChild(li);
+      return a;
+    };
+
+    // Normalize login link to always go to choice screen
+    const loginA =
+      navLinks.querySelector('a[href="login.html"]') ||
+      navLinks.querySelector('a[href="login-choice.html"]');
+    if (loginA) loginA.setAttribute('href', 'login-choice.html');
+
+    // Add missing links (so Profile doesn't "disappear")
+    const profileA = ensureLink('profile.html', 'Profile', 'admin-panel.html');
+    const adminA = ensureLink('admin-panel.html', 'Admin');
+    const signupA = navLinks.querySelector('a[href="signup.html"]');
+
+    // Visibility rules
+    if (profileA && profileA.closest('li')) {
+      profileA.closest('li').style.display = (user && !user.is_admin) ? '' : 'none';
     }
-
-    navLinks.innerHTML = links;
+    if (adminA && adminA.closest('li')) {
+      adminA.closest('li').style.display = (user && user.is_admin) ? '' : 'none';
+    }
+    if (loginA && loginA.closest('li')) {
+      loginA.closest('li').style.display = user ? 'none' : '';
+    }
+    if (signupA && signupA.closest('li')) {
+      signupA.closest('li').style.display = user ? 'none' : '';
+    }
   }
 
   // 🟢 KEEP ORIGINAL USER AREA LOGIC (UNCHANGED STYLE)
@@ -280,7 +317,7 @@ function updateNavbar() {
   } else {
     userArea.innerHTML = `
       <div style="display:flex;gap:8px;">
-        <a href="login.html" class="btn btn-ghost btn-sm">Login</a>
+        <a href="login-choice.html" class="btn btn-ghost btn-sm">Login</a>
         <a href="signup.html" class="btn btn-primary btn-sm">Sign Up</a>
       </div>`;
   }

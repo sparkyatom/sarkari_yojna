@@ -72,6 +72,8 @@ class Scheme(models.Model):
     eligible_state     = models.CharField(max_length=50, default='all')  # 'all' or state slug
     min_income         = models.PositiveIntegerField(default=0)           # annual, in rupees
     max_income         = models.PositiveIntegerField(null=True, blank=True)  # null = no limit
+    min_age            = models.PositiveSmallIntegerField(null=True, blank=True)  # years (inclusive)
+    max_age            = models.PositiveSmallIntegerField(null=True, blank=True)  # years (inclusive)
 
     # ─── Benefit ───
     benefit_amount  = models.PositiveIntegerField()           # in rupees

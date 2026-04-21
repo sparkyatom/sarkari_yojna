@@ -171,14 +171,83 @@ class SchemeCategoriesView(APIView):
     def get(self, request):
         user = request.user
         today = timezone.now().date()
-        applied_ids = set(UserSchemeStatus.objects.filter(user=user, applied=True).values_list('scheme__id', flat=True))
+        applied_ids = set(
+            UserSchemeStatus.objects.filter(user=user, applied=True).values_list('scheme__id', flat=True)
+        )
 
-        eligible_all = get_eligible_schemes(user)
-        eligible = eligible_all.exclude(id__in=applied_ids)
-        applied = Scheme.objects.filter(id__in=applied_ids, status='active')
-        missed = Scheme.objects.filter(last_date__lt=today, status='active')
-        at_risk = Scheme.objects.filter(status='active', last_date__gte=today, last_date__lte=today + timedelta(days=10)).order_by('last_date')
-        future = Scheme.objects.filter(status='active', last_date__gt=today + timedelta(days=10), last_date__lte=today + timedelta(days=730)).order_by('last_date')
+        # IMPORTANT: Buckets must be user-specific AND consistent with what the UI labels mean.
+        # - eligible_now: matched & open (deadline >= today) excluding applied
+        # - at_risk: eligible_now where deadline within 10 days
+        # - future: schemes within 2 years where user will satisfy age by the scheme deadline
+        # - missed: eligible since user signup, deadline passed, not applied
+
+        eligible_all_now = get_eligible_schemes(user, as_of_date=today, include_age=True, include_expired=False)
+
+        # Applied schemes (keep history even if expired/draft)
+        applied = Scheme.objects.filter(id__in=applied_ids).order_by('last_date')
+
+        eligible_open = eligible_all_now.exclude(id__in=applied_ids)
+        at_risk = eligible_open.filter(last_date__lte=today + timedelta(days=10)).order_by('last_date')
+
+        # Future within 2 years:
+        # schemes the user is NOT eligible for today (usually due to age),
+        # but will satisfy age by the scheme deadline, while satisfying other constraints.
+        future_base = get_eligible_schemes(
+            user,
+            as_of_date=today,
+            include_age=False,   # don't block future due to age today
+            include_expired=True,
+        ).filter(
+            last_date__gt=today + timedelta(days=10),
+            last_date__lte=today + timedelta(days=730),
+        ).exclude(id__in=applied_ids).exclude(
+            id__in=eligible_all_now.values_list('id', flat=True)  # already eligible today
+        )
+
+        user_dob = getattr(user, 'date_of_birth', None)
+        future_list = []
+        if user_dob:
+            for s in future_base.iterator():
+                if s.min_age is None and s.max_age is None:
+                    future_list.append(s)
+                    continue
+                # compute age on scheme deadline
+                d = s.last_date
+                age_on_deadline = d.year - user_dob.year - ((d.month, d.day) < (user_dob.month, user_dob.day))
+                if (s.min_age is None or age_on_deadline >= s.min_age) and (s.max_age is None or age_on_deadline <= s.max_age):
+                    future_list.append(s)
+        else:
+            future_list = list(future_base)
+        future = Scheme.objects.filter(id__in=[s.id for s in future_list]).order_by('last_date')
+
+        # Eligible "now" excluding at-risk bucket (future is disjoint by construction)
+        eligible = eligible_open.exclude(id__in=at_risk.values_list('id', flat=True)).order_by('last_date')
+
+        # Missed since signup date (eligible at the time, deadline passed, not applied)
+        signup_date = getattr(user, 'date_joined', None)
+        signup_day = signup_date.date() if signup_date else None
+        missed_qs = get_eligible_schemes(
+            user,
+            as_of_date=today,
+            include_age=False,  # evaluate age at deadline below
+            include_expired=True,
+        ).filter(last_date__lt=today).exclude(id__in=applied_ids)
+        if signup_day:
+            missed_qs = missed_qs.filter(last_date__gte=signup_day)
+        # Apply age-at-deadline to missed bucket
+        missed_list = []
+        if user_dob:
+            for s in missed_qs.iterator():
+                if s.min_age is None and s.max_age is None:
+                    missed_list.append(s)
+                    continue
+                d = s.last_date
+                age_on_deadline = d.year - user_dob.year - ((d.month, d.day) < (user_dob.month, user_dob.day))
+                if (s.min_age is None or age_on_deadline >= s.min_age) and (s.max_age is None or age_on_deadline <= s.max_age):
+                    missed_list.append(s)
+        else:
+            missed_list = list(missed_qs)
+        missed = Scheme.objects.filter(id__in=[s.id for s in missed_list]).order_by('-last_date')
 
         return Response({
             'applied': {
@@ -201,6 +270,7 @@ class SchemeCategoriesView(APIView):
                 'count': future.count(),
                 'results': SchemeListSerializer(future, many=True, context={'request': request}).data,
             },
+            'matched_open_total': int(eligible.count() + at_risk.count() + future.count()),
         })
 
 

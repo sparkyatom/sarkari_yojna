@@ -93,20 +93,19 @@ from django.db.models import Q
 from django.utils import timezone
 
 
-def get_eligible_schemes(user):
+def get_eligible_schemes(user, *, as_of_date=None, include_age=True, include_expired=False):
     """
     Given a UserProfile instance, return schemes the user is eligible for.
     """
 
     from schemes.models import Scheme
 
-    today = timezone.now().date()
+    today = as_of_date or timezone.now().date()
 
     # ── BASE QUERY ─────────────────────────────────────
-    qs = Scheme.objects.filter(
-        status='active',
-        last_date__gte=today   # remove expired schemes
-    )
+    qs = Scheme.objects.filter(status='active')
+    if not include_expired:
+        qs = qs.filter(last_date__gte=today)  # remove expired schemes
 
     # ── 1. CATEGORY (CASTE) FILTER ─────────────────────
     # SAFE VERSION (will NOT break results)
@@ -148,6 +147,15 @@ def get_eligible_schemes(user):
             Q(eligible_gender__icontains=user.gender)
         )
 
+    # ── 6. AGE FILTER (NEW) ────────────────────────────
+    if include_age:
+        user_age = _get_user_age_on_date(user, today)
+        if user_age is not None:
+            qs = qs.filter(
+                Q(min_age__isnull=True) | Q(min_age__lte=user_age),
+                Q(max_age__isnull=True) | Q(max_age__gte=user_age),
+            )
+
     # ── FINAL SORT ─────────────────────────────────────
     return qs.order_by('last_date')
 
@@ -168,3 +176,11 @@ def _get_user_min_income(user):
         return int(user.income_range.split('-')[0])
     except (ValueError, IndexError):
         return 0
+
+
+def _get_user_age_on_date(user, as_of_date):
+    dob = getattr(user, 'date_of_birth', None)
+    if not dob:
+        return None
+    d = as_of_date
+    return d.year - dob.year - ((d.month, d.day) < (dob.month, dob.day))

@@ -278,7 +278,7 @@
   <ul class="navbar-links">
     <li><a href="index.html">Home</a></li>
     <li><a href="schemes.html" class="active">Schemes</a></li>
-    <li><a href="login.html" id="nav-login">Login</a></li>
+    <li><a href="login-choice.html" id="nav-login">Login</a></li>
     <li><a href="signup.html" id="nav-signup">Sign Up</a></li>
     <li><a href="admin-panel.html">Admin</a></li>
   </ul>
@@ -453,7 +453,7 @@
 
 <div id="toast-container"></div>
 
-<script src="js/api.js?v=gov-refresh-2"></script>
+<script src="js/api.js?v=gov-refresh-4"></script>
 <script>
 let currentSchemes = [];
 let currentSchemeForModal = null;
@@ -600,22 +600,45 @@ function showSchemeDetailModal(s) {
 function applyNow() {
   if (!Auth.isLoggedIn()) {
     showToast('Please login to apply', 'info');
+    setTimeout(() => window.location.href = 'login-choice.html', 600);
     return;
   }
-  if (currentSchemeForModal) {
-    toggleApplyFromModal(currentSchemeForModal.id);
+  if (!currentSchemeForModal) return;
+
+  // Open the official portal (external link)
+  const ok = openOfficialPortal(currentSchemeForModal);
+  if (!ok) return;
+
+  // Do NOT auto-mark as applied. User must confirm via checkbox.
+  showToast('Opened official portal. After applying, tick "Apply" to mark it in your profile.', 'info');
+}
+
+function openOfficialPortal(scheme) {
+  const url = scheme && (scheme.official_url || scheme.officialUrl || scheme.url);
+  if (!url) {
+    showToast('Official application link not available for this scheme', 'info');
+    return false;
+  }
+  try {
+    window.open(url, '_blank', 'noopener,noreferrer');
+    return true;
+  } catch (e) {
+    console.error('Failed to open official URL', e);
+    showToast('Could not open official portal. Please check popup blocker.', 'error');
+    return false;
   }
 }
 
-async function toggleApplyFromModal(schemeId) {
+async function toggleApplyFromModal(schemeId, forceState = null) {
   if (!Auth.isLoggedIn()) {
     showToast('Please login to apply to schemes', 'info');
     return;
   }
   const currentState = currentSchemeForModal?.applied || false;
+  const nextState = forceState === null ? !currentState : !!forceState;
   try {
-    await SchemesAPI.apply(schemeId, !currentState);
-    showToast(!currentState ? 'Scheme added to your applications' : 'Scheme removed from your applications', 'success');
+    await SchemesAPI.apply(schemeId, nextState);
+    showToast(nextState ? 'Scheme added to your applications' : 'Scheme removed from your applications', 'success');
     // Update the scheme data
     currentSchemeForModal = await SchemesAPI.getDetail(schemeId);
     showSchemeDetailModal(currentSchemeForModal);
@@ -672,7 +695,10 @@ async function updateEligibleBanner() {
   try {
     // Use categorized endpoint which contains the eligible.count for the logged-in user
     const data = await SchemesAPI.getCategorized();
-    const eligibleCount = (data && data.eligible && data.eligible.count) ? data.eligible.count : 0;
+    // "Matched to your profile" should include all open eligible buckets, not just the "eligible" tab.
+    const eligibleCount = Number(data?.eligible?.count || 0)
+      + Number(data?.at_risk?.count || 0)
+      + Number(data?.future?.count || 0);
     const el = document.getElementById('eligible-count');
     if (el) el.textContent = eligibleCount;
     // Ensure banner visibility for logged-in users

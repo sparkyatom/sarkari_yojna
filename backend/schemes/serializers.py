@@ -14,6 +14,7 @@ class SchemeListSerializer(serializers.ModelSerializer):
             'id', 'name', 'ministry', 'category', 'icon',
             'eligible_category', 'eligible_occupation', 'eligible_gender',
             'eligible_state', 'min_income', 'max_income',
+            'min_age', 'max_age',
             'benefit_amount', 'benefit_period',
             'last_date', 'status', 'description',
             'required_documents', 'official_url',

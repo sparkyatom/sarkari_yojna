@@ -31,6 +31,8 @@ COLUMN_MAP = {
     'state':                'eligible_state',
     'min_income':           'min_income',
     'max_income':           'max_income',
+    'min_age':              'min_age',
+    'max_age':              'max_age',
     'benefit_amount':       'benefit_amount',
     'benefit':              'benefit_amount',
     'benefit_period':       'benefit_period',
@@ -70,6 +72,8 @@ def parse_date(val):
 
 def parse_int(val, default=0):
     try:
+        if default is None and (val is None or str(val).strip() == ''):
+            return None
         return int(str(val).replace(',', '').strip())
     except (ValueError, TypeError):
         return default
@@ -305,6 +309,8 @@ def _process_rows(headers, data_rows):
             eligible_state     = normalize_eligible_state(get('eligible_state', 'all')), 
             min_income         = parse_int(get('min_income'), 0),
             max_income         = parse_int(get('max_income')) or None,
+            min_age            = parse_int(get('min_age'), None),
+            max_age            = parse_int(get('max_age'), None),
             benefit_amount     = benefit_amount,
             benefit_period     = benefit_period,
             last_date          = last_date,

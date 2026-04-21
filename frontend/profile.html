@@ -299,7 +299,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-number" id="stat-eligible">0</div>
-          <div class="stat-label">Eligible</div>
+          <div class="stat-label">Matched (Open)</div>
         </div>
         <div class="stat-card">
           <div class="stat-number" id="stat-at-risk">0</div>
@@ -351,7 +351,7 @@
 
 <div id="toast-container"></div>
 
-<script src="js/api.js"></script>
+<script src="js/api.js?v=gov-refresh-5"></script>
 <script>
 
 // ─── INIT ───
@@ -380,7 +380,7 @@ updateNavbar();
 
 window.addEventListener('load', async () => {
   if (!Auth.isLoggedIn()) {
-    window.location.href = 'login.html';
+    window.location.href = 'login-choice.html';
     return;
   }
 
@@ -417,7 +417,9 @@ async function loadCategorizedSchemes() {
     
     // Update stats
     document.getElementById('stat-applied').textContent = data.applied.count;
-    document.getElementById('stat-eligible').textContent = data.eligible.count;
+    document.getElementById('stat-eligible').textContent = Number(data.matched_open_total ?? (
+      Number(data.eligible.count || 0) + Number(data.at_risk.count || 0) + Number(data.future.count || 0)
+    ));
     document.getElementById('stat-at-risk').textContent = data.at_risk.count;
     document.getElementById('stat-missed').textContent = data.missed.count;
 
@@ -446,6 +448,10 @@ function renderSchemeList(elementId, schemes, category) {
     const dl = daysLeft(s.last_date);
     const dlText = dl < 0 ? '⛔ Expired' : dl < 15 ? `⚠ ${dl} days` : formatDate(s.last_date);
     const classExtra = category === 'missed' ? 'missed' : category === 'at-risk' ? 'at-risk' : '';
+    const url = s.official_url || '';
+    const applyBtn = url
+      ? `<button class="btn btn-primary btn-sm" onclick="openOfficialPortal('${encodeURIComponent(url)}'); event.stopPropagation();">Apply →</button>`
+      : `<button class="btn btn-outline btn-sm" disabled title="Official link not available">Apply</button>`;
 
     return `
     <div class="scheme-card-profile ${classExtra}">
@@ -453,6 +459,10 @@ function renderSchemeList(elementId, schemes, category) {
       <div class="meta">🏛️ ${s.ministry || 'Ministry'}</div>
       <div class="benefit">₹${formatCurrency(s.benefit_amount || 0)} / ${s.benefit_period || 'per year'}</div>
       <div class="deadline">${dlText}</div>
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        ${applyBtn}
+        <a class="btn btn-outline btn-sm" href="schemes.html" style="text-decoration:none;">Details</a>
+      </div>
     </div>`;
   }).join('');
 }
@@ -508,6 +518,20 @@ function showToast(msg, type = 'info') {
   toast.textContent = msg;
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
+}
+
+function openOfficialPortal(encodedUrl) {
+  try {
+    const url = decodeURIComponent(encodedUrl || '');
+    if (!url) {
+      showToast('Official application link not available for this scheme', 'info');
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } catch (e) {
+    console.error('Failed to open official portal', e);
+    showToast('Could not open official portal. Please check popup blocker.', 'error');
+  }
 }
 </script>
 
